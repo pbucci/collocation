@@ -6,10 +6,15 @@
 	objectVersion = 46;
 	objects = {
 
+/* Begin PBXFileReference section */
+		0A50B560192693CA001F4870 /* profiler.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = profiler.py; path = modules/profiler.py; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
 /* Begin PBXGroup section */
 		0A50B555192692D9001F4870 = {
 			isa = PBXGroup;
 			children = (
+				0A50B560192693CA001F4870 /* profiler.py */,
 			);
 			sourceTree = "<group>";
 		};
@@ -22,7 +27,8 @@
 			buildConfigurationList = 0A50B55D192692D9001F4870 /* Build configuration list for PBXLegacyTarget "CorrelationProfiler" */;
 			buildPhases = (
 			);
-			buildToolPath = /usr/local/bin/python3;
+			buildToolPath = /usr/bin/python;
+			buildWorkingDirectory = "";
 			dependencies = (
 			);
 			name = CorrelationProfiler;
