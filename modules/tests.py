@@ -3,7 +3,7 @@ from profiler import *
 
 class TestMeta(unittest.TestCase):
     def setUp(self):
-        self.pathstring = "../texts/G1_Rujia_01_lunyu_seg_nopunc.txt"
+        self.pathstring = "/Users/bucci/dev/CorrelationProfiler/texts/G1_Rujia_01_lunyu_seg_nopunc.txt"
         self.textmeta = TextMeta(self.pathstring)
     
     def testTextMetaFields(self):
