@@ -1,31 +1,28 @@
 import unittest
 from profiler import *
 
-class TestMeta(unittest.TestCase):
+class Tester(unittest.TestCase):
     def setUp(self):
-        self.pathstring = "/Users/bucci/dev/CorrelationProfiler/texts/G1_Rujia_01_lunyu_seg_nopunc.txt"
-        self.textmeta = TextMeta(self.pathstring)
+        self.handler = ParseHandler()
+        self.handler.setTextDirectoryPath("/Users/bucci/dev/CorrelationProfiler/test_texts")
+        self.handler.loadAllClasses()
+        self.handler.loadAllTexts()
     
-    def testTextMetaFields(self):
-        self.assertEqual(self.textmeta.path, self.pathstring)
-    
-    def testGenre(self):
-        self.assertEqual(self.textmeta.genre, 1)
-    
-    def testSchool(self):
-        self.assertEqual(self.textmeta.school, "Rujia")
-    
-    def testGenreNum(self):
-        self.assertEqual(self.textmeta.genreNum, 1)
-    
-    def testName(self):
-        self.assertEqual(self.textmeta.name, "lunyu")
-    
-    def testSeg(self):
-        self.assertEqual(self.textmeta.seg, "seg")
-    
-    def testPunc(self):
-        self.assertEqual(self.textmeta.punc, "nopunc")
+    def test_loadClasses(self):
+        self.assertEqual(self.handler.classes[2].id, "focal_set")
+
+    def test_focalSet_is_loaded_correctly(self):
+        self.assertEqual(self.handler.classes[2].chars, ('a','b','c'))
+
+    def test_correlation_build(self):
+        focal = self.handler.classes[2]
+        compare_set = (self.handler.classes[0],self.handler.classes[1])
+        for t in self.handler.texts:
+            t.generateCorrelationProfile(focal,compare_set)
+            p = t.profiles[0]
+            p.generateMatches()
+            p.generateNodesAndEdges()
+            p.printNodes()
 
 if __name__ == '__main__':
     unittest.main()

@@ -9,6 +9,8 @@
 /* Begin PBXFileReference section */
 		0A50B560192693CA001F4870 /* profiler.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = profiler.py; path = modules/profiler.py; sourceTree = "<group>"; };
 		0A50B5651926A2C4001F4870 /* tests.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = tests.py; path = modules/tests.py; sourceTree = "<group>"; };
+		0AA6BDD819280EBF002B0828 /* test.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = test.py; path = ../../Desktop/test.py; sourceTree = "<group>"; };
+		0AD486F91927D87800D46DFD /* classes.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = classes.py; path = modules/classes.py; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -17,6 +19,8 @@
 			children = (
 				0A50B5651926A2C4001F4870 /* tests.py */,
 				0A50B560192693CA001F4870 /* profiler.py */,
+				0AA6BDD819280EBF002B0828 /* test.py */,
+				0AD486F91927D87800D46DFD /* classes.py */,
 			);
 			sourceTree = "<group>";
 		};
@@ -173,6 +177,7 @@
 				0A50B55F192692D9001F4870 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
