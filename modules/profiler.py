@@ -1,4 +1,41 @@
 import os
+
+##############################################
+class ParseHandler(object):
+    def __init__(self):
+        self.texts = []
+        self.classes = []
+    
+    # Creates a TextMeta object
+    def loadText(self,textpath):
+        t = TextMeta(textpath)
+        self.texts.append(t)
+    
+    # Loads all texts in a directory
+    def loadAllTexts(self):
+        for file in os.listdir(self.dirpath):
+            self.loadText(self.dirpath + "/" + file)
+    
+    # Creates a character class
+    # id    : string
+    # chars : list of characters
+    def loadClass(self,id,chars):
+        c = CharacterClass(id,chars)
+        self.classes.append(c)
+    
+    # Sets the directory in which to look for texts
+    def setTextDirectoryPath(self,path):
+        self.dirpath = path
+    
+    # Loads classes from classes.py
+    def loadAllClasses(self):
+        from classes import classes
+        for id,chars in classes.iteritems():
+            self.loadClass(id,chars)
+
+##############################################
+# A focal character and an ordered list of
+# edges to comparision characters
 class Node(object):
     def __init__(self,fc):
         # Focal character
@@ -8,6 +45,7 @@ class Node(object):
         self.edgelist = []
     
     # Adds an edge, maintains edge order
+    # in terms of absolute distance
     def add(self,e):
         if len(self.edgelist) == 0:
             self.edgelist.append(e)
@@ -20,41 +58,83 @@ class Node(object):
                 i = i + 1
             self.edgelist.append(e)
 
+    # Match count <= cost
+    def countWithin(self,cost):
+        count = len(getWithin(cost))
+        return count
+
+    # Get all edges <= cost
+    def getWithin(self,cost):
+        list = []
+        for e in self.edgelist:
+            if e.abscost <= cost:
+                list.append(e)
+            # else break
+
+    # Get all matches between two of a class of character
+    def getMatchesBetween(self,charClass):
+        right
+        left
+        list = []
+        for e in self.edgelist:
+            if (right is undefined or left is undefined):
+                if e.to.type is charClass:
+                    if e.cost >= 0:
+                        right = e
+                    else:
+                        left = e
+                else:
+                    list.append(e)
+
+    # Gets an ordered list of closest n edges
     def getNClosestMatches(self,n):
         return self.edgelist[:n]
-
+    
+    # Gets an ordered list of closest 1 edge
     def getClosestMatch(self):
         return self.edgelist[:1]
     
+    # Print function for visualization
     def printNode(self):
-        print "Character: " + self.focal.char
+        print "Character: " + self.focal.name
         print "Type: " + self.focal.typeId
         self.printEdges()
         print "\n"
-
+    
+    # Print function for visualization
     def printEdges(self):
         for e in self.edgelist:
             e.printEdge()
 
+##############################################
 # A directed edge to a comparison class match
 class Edge(object):
     def __init__(self,t,cost):
         self.to = t
         self.cost = cost
         self.abscost = abs(cost)
-
+    
+    # Prints all pertainent edge information
     def printEdge(self):
-        print "Edge to: " + self.to.char
+        print "Edge to: " + self.to.name
         print "Cost: " + str(self.cost)
 
+##############################################
 # An instance of a matched character
 class Match(object):
     def __init__(self,character,pos,type):
-        self.char = character + "-" + str(pos)
+        # Unique identifier
+        self.name = character + "-" + str(pos)
+        # Character
+        self.char = character
+        # Character class
         self.type = type
+        # Character class unique id
         self.typeId = type.id
+        # Integer
         self.pos = pos
 
+##############################################
 # A set of characters with a unique identifier
 class CharacterClass(object):
     def __init__(self,id,chars):
@@ -63,37 +143,7 @@ class CharacterClass(object):
         # the list of Characters
         self.chars = chars
 
-characters_to_ignore = CharacterClass("ignore",('\ '))
-
-class ParseHandler(object):
-    def __init__(self):
-        self.texts = []
-        self.classes = []
-    
-    # Creates a TextMeta object
-    def loadText(self,textpath):
-        t = TextMeta(textpath)
-        self.texts.append(t)
-    
-    def loadAllTexts(self):
-        for file in os.listdir(self.dirpath):
-            self.loadText(self.dirpath + "/" + file)
-    
-    # Creates a character class
-    # id    : string
-    # chars : list of characters
-    def loadClass(self,id,chars):
-        c = CharacterClass(id,chars)
-        self.classes.append(c)
-
-    def setTextDirectoryPath(self,path):
-        self.dirpath = path
-
-    def loadAllClasses(self):
-        from classes import classes
-        for id,chars in classes.iteritems():
-            self.loadClass(id,chars)
-
+##############################################
 # Text information for easy classification
 class TextMeta(object):
     def __init__(self,textpath):
@@ -119,9 +169,10 @@ class TextMeta(object):
     def generateCorrelationProfile(self, focalClass, comparisonClasses):
         profile = CorrelationProfile(focalClass, comparisonClasses, self)
         self.profiles.append(profile)
-    
-# A profile of character sets interactions, lives as an inner
-# class because it is metadata about a particular text
+
+##############################################
+# A profile of character sets interactions
+# metadata about a particular text
 class CorrelationProfile(object):
     def __init__(self,focalClass,comparisonClasses,textmeta):
         self.textmeta = textmeta
@@ -133,7 +184,6 @@ class CorrelationProfile(object):
         # Nodes are directed
         self.nodes = []
 
-    
     # Parses the input file character by character to
     # find matches.
     def generateMatches(self):
@@ -159,8 +209,8 @@ class CorrelationProfile(object):
             # match list
             for characterClass in self.comparisonClasses:
                 if c in characterClass.chars:
-                    m = Match(c,pos,characterClass)
-                    self.comparisonMatches.append(m)
+                   m = Match(c,pos,characterClass)
+                   self.comparisonMatches.append(m)
 
     # Calculates edges between match nodes and generates
     # a directed edge object
@@ -176,3 +226,11 @@ class CorrelationProfile(object):
     def printNodes(self):
         for n in self.nodes:
             n.printNode()
+                    
+    def countWithin(self,cost):
+        count = 0
+        for n in self.nodes:
+            count = count + n.countWithin(cost)
+        return count
+
+characters_to_ignore = CharacterClass("ignore",('\ '))
