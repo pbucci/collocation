@@ -2,6 +2,8 @@
 import os
 import threading
 import codecs
+import sys
+import copy
 
 ##############################################
 class ParseHandler(object):
@@ -12,15 +14,15 @@ class ParseHandler(object):
         self.ignore = self.getClass('ignore')
     
     # Creates a TextMeta object
-    def loadText(self,textpath):
-        t = TextMeta(textpath,self)
+    def loadText(self,textpath,*maxcost):
+        t = TextMeta(textpath,self,maxcost[0])
         self.texts.append(t)
     
     # Loads all texts in a directory
-    def loadAllTexts(self):
+    def loadAllTexts(self,*maxcost):
         for file in os.listdir(self.dirpath):
             if file[0] != ".":
-                self.loadText(self.dirpath + "/" + file)
+                self.loadText(self.dirpath + "/" + file,maxcost[0])
 
     # Returns a class from self.classes
     def getClass(self,id):
@@ -84,7 +86,7 @@ class ParseHandler(object):
                         charcounts[char] = charcounts[char] + count
                         sumtotals[cc.id][char] = sumtotals[cc.id][char] + count
             report.close()
-        summary = open('/Users/bucci/reports/summary.txt', 'w')
+        summary = open('/Users/bucci/reports/summary-count-report.txt', 'w')
         for c,v in charcounts.iteritems():
             summary.write(c + "," + str(v) + "\n")
         for cc,chars in sumtotals.iteritems():
@@ -95,16 +97,102 @@ class ParseHandler(object):
         summary.close()
         print "Done!"
 
+    def fullSentenceReport(self):
+        self.runFullComparison('reduced_deity',('reduced_punishment','stopwords'))
+        self.runFullComparison('reduced_deity',('reduced_reward','stopwords'))
+        self.runFullComparison('reduced_god',('reduced_punishment','stopwords'))
+        self.runFullComparison('reduced_god',('reduced_reward','stopwords'))
+        self.runFullComparison('reduced_deity',('ubc_morality','stopwords'))
+        self.runFullComparison('reduced_deity',('ubc_emotion','stopwords'))
+        self.runFullComparison('reduced_deity',('ubc_cognition','stopwords'))
+        self.runFullComparison('reduced_deity',('ubc_religion','stopwords'))
+        self.runFullComparison('reduced_god',('ubc_morality','stopwords'))
+        self.runFullComparison('reduced_god',('ubc_emotion','stopwords'))
+        self.runFullComparison('reduced_god',('ubc_cognition','stopwords'))
+        self.runFullComparison('reduced_god',('ubc_religion','stopwords'))
+        print "Done!"
+
+    def runFullComparison(self,f,comps):
+        print "Comparision initialized."
+        focal = self.getClass(f)
+        comparisons = self.loadClassTuple(comps)
+        file = open('/Users/bucci/reports/total_summary' + '.csv', 'w')
+        total = 0
+        for text in self.texts:
+            text.generateCorrelationProfile(focal,comparisons)
+            for cp in text.profiles:
+                total = total + cp.countMatchesInSentenceWithinCost(120,comparisons[1])
+            file.write(text.id + '_' + focal.id + '_x_' + comparisons[0].id + ', ' + str(total) + '\n')
+        file.close()
+
+    # Report for in-sentence counts
+    def sentenceReport(self):
+        self.runComparison('reduced_deity',('reduced_punishment','stopwords'))
+        self.runComparison('reduced_deity',('reduced_reward','stopwords'))
+        self.runComparison('reduced_god',('reduced_punishment','stopwords'))
+        self.runComparison('reduced_god',('reduced_reward','stopwords'))
+        self.runComparison('reduced_deity',('ubc_morality','stopwords'))
+        self.runComparison('reduced_deity',('ubc_emotion','stopwords'))
+        self.runComparison('reduced_deity',('ubc_cognition','stopwords'))
+        self.runComparison('reduced_deity',('ubc_religion','stopwords'))
+        self.runComparison('reduced_god',('ubc_morality','stopwords'))
+        self.runComparison('reduced_god',('ubc_emotion','stopwords'))
+        self.runComparison('reduced_god',('ubc_cognition','stopwords'))
+        self.runComparison('reduced_god',('ubc_religion','stopwords'))
+        print "Done!"
+
+    # Runs a comparision between f and comps classes
+    # f : string
+    # comps : string tuple
+    def runComparison(self,f,comps):
+        print "Comparision initialized."
+        focal = self.getClass(f)
+        comparisons = self.loadClassTuple(comps)
+        
+        total_ten = 0
+        total_five = 0
+        total_two = 0
+        total_one = 0
+        for text in self.texts:
+            file = open('/Users/bucci/reports/' + text.id + '_' + focal.id + '_x_' + comparisons[0].id + '_sentence.csv', 'w')
+            text.generateCorrelationProfile(focal,comparisons)
+            ten = 0
+            five = 0
+            two = 0
+            one = 0
+            for cp in text.profiles:
+                ten = ten + cp.countMatchesInSentenceWithinCost(10,comparisons[1])
+                five = five + cp.countMatchesInSentenceWithinCost(5,comparisons[1])
+                two = two + cp.countMatchesInSentenceWithinCost(2,comparisons[1])
+                one = one + cp.countMatchesInSentenceWithinCost(1,comparisons[1])
+            file.write("10" + ", " + str(ten) + "\n")
+            file.write("5" + ", " + str(five) + "\n")
+            file.write("2" + ", " + str(two) + "\n")
+            file.write("1" + ", " + str(one) + "\n")
+            file.close()
+            
+            total_ten = total_ten + ten
+            total_five = total_five + five
+            total_two = total_two + two
+            total_one = total_one + one
+
+        summary = open('/Users/bucci/reports/' + text.id + '_' + focal.id + '_x_' + comparisons[0].id + '_sentence_summary.csv', 'w')
+        summary.write("10" + ", " + str(total_ten) + "\n")
+        summary.write("5" + ", " + str(total_five) + "\n")
+        summary.write("2" + ", " + str(total_two) + "\n")
+        summary.write("1" + ", " + str(total_one) + "\n")
+
 ##############################################
 # A focal character and an ordered list of
 # edges to comparision characters
 class Node(object):
-    def __init__(self,fc):
+    def __init__(self,fc,id):
         # Focal character
         self.focal = fc
         # Ordered list of edges from
         # nearest to farthest
         self.edgelist = []
+        self.id = id
     
     # Adds an edge, maintains edge order
     # in terms of absolute distance
@@ -126,20 +214,26 @@ class Node(object):
         return count
 
     # Get all edges <= cost
+    # edges is a filtered list of edges, defaults to full list
     def getWithin(self,cost):
         list = []
         for e in self.edgelist:
             if e.abscost <= cost:
                 list.append(e)
+        return list
             # else break
 
     # Get all matches between two of a class of character
-    def getMatchesBetween(self,charClass):
-        right
-        left
+    def getMatchesBetween(self,charClass,*edges):
+        right = None
+        left = None
         list = []
-        for e in self.edgelist:
-            if (right is undefined or left is undefined):
+        if len(edges) == 0:
+            edges = self.edgelist
+        else:
+            edges = edges[0]
+        for e in edges:
+            if (right is None or left is None):
                 if e.to.type is charClass:
                     if e.cost >= 0:
                         right = e
@@ -147,6 +241,7 @@ class Node(object):
                         left = e
                 else:
                     list.append(e)
+        return list
 
     # Gets an ordered list of closest n edges
     def getNClosestMatches(self,n):
@@ -208,12 +303,12 @@ class CharacterClass(object):
 ##############################################
 # Text information for easy classification
 class TextMeta(object):
-# class TextMeta(threading.Thread):
-    def __init__(self,textpath,ph):
+    def __init__(self,textpath,ph,*maxcost):
         # The handler
         self.parsehandler = ph
         # Parse the file path
-        self.id = textpath.split("/").pop()
+        self.pathcopy = copy.copy(textpath)
+        self.id = self.pathcopy.split("/").pop().split(".").pop(0)
         splittext = textpath.split("/").pop().split("_")
         # Fields that parse for organization
         self.path = textpath
@@ -227,17 +322,16 @@ class TextMeta(object):
         self.file = codecs.open(self.path,encoding='utf-8')
         # The analyses
         self.profiles = []
-    
+        if len(maxcost) == 1:
+            self.maxcost = maxcost[0]
+        else:
+            self.maxcost = sys.maxint
+
     # A function that generates a profile for comparing two or more
     # classes. The profile can be seen as a directed weighted graph
     # focalClass        : CharacterClass
     # comparisonClass   : list of CharacterClass
     def generateCorrelationProfile(self, focalClass, comparisonClasses):
-        #thread = threading.Thread(target=self.genHandler,args=(focalClass,comparisonClasses))
-        #thread.start()
-        self.genHandler(focalClass,comparisonClasses)
-
-    def genHandler(self,focalClass,comparisonClasses):
         profile = CorrelationProfile(focalClass, comparisonClasses, self)
         self.profiles.append(profile)
 
@@ -246,6 +340,7 @@ class TextMeta(object):
 # metadata about a particular text
 class CorrelationProfile(object):
     def __init__(self,focalClass,comparisonClasses,textmeta):
+        self.id = textmeta.id + focalClass.id + "_" + comparisonClasses[0].id
         self.textmeta = textmeta
         self.focalClass = focalClass
         self.comparisonClasses = comparisonClasses
@@ -254,12 +349,17 @@ class CorrelationProfile(object):
         self.comparisonMatches = []
         # Nodes are directed
         self.nodes = []
+
+
+        print "Generating correlation profile for " + self.textmeta.id
         self.generateMatches()
         self.generateNodesAndEdges()
+        self.gexfGraph()
 
     # Parses the input file character by character to
     # find matches.
     def generateMatches(self):
+        print "Generating matches for " + self.textmeta.id
         # Position in file
         pos = 0
         while True:
@@ -280,7 +380,6 @@ class CorrelationProfile(object):
                 self.focalMatches.append(m)
                 continue
             # If c is a comparison class character, add it to the comparison match list
-        
             for cc in self.comparisonClasses:
                 if (c in cc.chars):
                     m = Match(c,pos,cc)
@@ -289,12 +388,14 @@ class CorrelationProfile(object):
     # Calculates edges between match nodes and generates
     # a directed edge object
     def generateNodesAndEdges(self):
+        print "Generating nodes and edges for " + self.textmeta.id + " within " + str(self.textmeta.maxcost)
         for f in self.focalMatches:
-            n = Node(f)
+            n = Node(f,f.pos)
             for c in self.comparisonMatches:
                 cost = c.pos - f.pos
                 e = Edge(c,cost)
-                n.add(e)
+                if e.abscost <= self.textmeta.maxcost:
+                    n.add(e)
             self.nodes.append(n)
 
     # Prints pertainent information from all nodes
@@ -325,7 +426,7 @@ class CorrelationProfile(object):
     # Counts totals for specific occurance of a character
     # with absolute distance <= cost
     def countMatchesForCharacterWithin(char,cost):
-        return len(getMatchesForCharacterWithin(char,cost))
+        return len(self.getMatchesForCharacterWithin(char,cost))
     
     # Gets all matches in node list with char as focal
     # and absolute distance <= cost
@@ -338,8 +439,36 @@ class CorrelationProfile(object):
                     list.append(nl)
         return list
 
+    # Get matches between class within cost
+    def getMatchesInSentenceWithinCost(self,cost,cc):
+        list = []
+        for n in self.nodes:
+            list = list + n.getMatchesBetween(cc,n.getWithin(cost))
+        return list
+
+    # Count matches between class within cost
+    def countMatchesInSentenceWithinCost(self,cost,cc):
+        count = len(self.getMatchesInSentenceWithinCost(cost,cc))
+        return count
+
+    def gexfGraph(self):
+        print "Printing GEXF"
+        file = open(self.textmeta.parsehandler.dirpath + '/.graphs/' + self.id + '_graph.gexf', 'w')
+        file.write('<?xml version="1.0" encoding="UTF-8"?>\n<gexf xmlns="http://www.gexf.net/1.2draft" version="1.2">\n<graph mode="static" defaultedgetype="directed">\n<attribute id="0" title="cost" type="integer"/>\n<nodes>')
+        for n in self.nodes:
+            file.write('<node id="' + str(n.id) + '" label="' + str(n.focal.pos) + '"></node>\n')
+            for e in n.edgelist:
+                file.write('<node id="' + str(e.to.pos) + '" label="' + str(n.focal.pos) + '">\n')
+                file.write('<attvalue for="0" value="' + str(e.abscost) + '"/>')
+        file.write('</nodes>\n<edges>')
+        for n in self.nodes:
+            for e in n.edgelist:
+                file.write('<edge id="' + str(e.to.pos) + '" source="' + str(n.id) + '" target="' + str(e.to.pos) + '"/>')
+        file.write('</edges>\n</graph>\n</gexf>')
+        file.close()
+
 if __name__ == '__main__':
     handler = ParseHandler()
     handler.setTextDirectoryPath("/Users/bucci/dev/CorrelationProfiler/texts")
-    handler.loadAllTexts()
-    handler.countReport()
+    handler.loadAllTexts(120)
+    handler.fullSentenceReport()
