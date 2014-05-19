@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 
 ##############################################
@@ -5,23 +6,25 @@ class ParseHandler(object):
     def __init__(self):
         self.texts = []
         self.classes = []
+        self.loadAllClasses()
+        self.ignore = self.getClass('ignore')
     
     # Creates a TextMeta object
     def loadText(self,textpath):
-        t = TextMeta(textpath)
+        t = TextMeta(textpath,self)
         self.texts.append(t)
     
     # Loads all texts in a directory
     def loadAllTexts(self):
         for file in os.listdir(self.dirpath):
             self.loadText(self.dirpath + "/" + file)
-    
-    # Creates a character class
-    # id    : string
-    # chars : list of characters
-    def loadClass(self,id,chars):
-        c = CharacterClass(id,chars)
-        self.classes.append(c)
+
+    # Returns a class from self.classes
+    def getClass(self,id):
+        for c in self.classes:
+            if c.id == id:
+                return c
+        return None
     
     # Sets the directory in which to look for texts
     def setTextDirectoryPath(self,path):
@@ -32,6 +35,56 @@ class ParseHandler(object):
         from classes import classes
         for id,chars in classes.iteritems():
             self.loadClass(id,chars)
+
+    # Creates a character class
+    # id    : string
+    # chars : list of characters
+    def loadClass(self,id,chars):
+        c = CharacterClass(id,chars)
+        self.classes.append(c)
+    
+    # Loads all classes in tuple into a tuple
+    def loadClassTuple(self,tuple):
+        list = []
+        for t in tuple:
+            list.append(self.loadClass(t))
+        return list
+    
+    # Report for character counts
+    def countReport(self):
+        focal = self.loadClass('null')
+        comparison = self.loadClassTuple(('reduced_deity','reduced_god','reduced_punishment','reduced_reward','ubc_emotion','ubc_cognition','ubc_religion','ubc_morality'))
+        charcounts = {}
+        for cc in comparison:
+            for char in cc.chars:
+                charcounts[char] = 0
+        sumtotals = {}
+        for cc in comparision:
+            dict = {}
+            for char in cc.chars:
+                dict[char] = 0
+            sumtotals[cc.id] = dict
+        for t in self.texts:
+            t.generateCorrelationProfile(focal,comparison)
+        for t in self.texts:
+            report = open(t.id + '-count-report')
+            for cp in t.profiles:
+                for cc in comparison:
+                    for char in cc.chars:
+                        count = cc.countCharInText(char);
+                        report.write(char + "," + count + '\n')
+                        charcounts[char] = charcounts[char].value() + count
+                        sumtotals[cc.id[char]] = sumtotals[cc.id[char]].value() + count
+            report.close()
+        summary = open('summary')
+        for c,v in charcounts.iteritems():
+            summary.write(c + "," + v + "\n")
+        for cc,chars in sumtotals.iteritems():
+            count = 0
+            for chars,value in cc.iteritems():
+                count = count + value
+            summary.write(cc.id + "," + count + "\n")
+        summary.close()
 
 ##############################################
 # A focal character and an ordered list of
@@ -146,8 +199,11 @@ class CharacterClass(object):
 ##############################################
 # Text information for easy classification
 class TextMeta(object):
-    def __init__(self,textpath):
+    def __init__(self,textpath,ph):
+        # The handler
+        self.parsehandler = ph
         # Parse the file path
+        self.id = textpath.split("/").pop()
         splittext = textpath.split("/").pop().split("_")
         # Fields that parse for organization
         self.path = textpath
@@ -161,6 +217,7 @@ class TextMeta(object):
         self.file = open(self.path)
         # The analyses
         self.profiles = []
+    
     
     # A function that generates a profile for comparing two or more
     # classes. The profile can be seen as a directed weighted graph
@@ -183,6 +240,8 @@ class CorrelationProfile(object):
         self.comparisonMatches = []
         # Nodes are directed
         self.nodes = []
+        self.generateMatches()
+        self.generateNodesAndEdges()
 
     # Parses the input file character by character to
     # find matches.
@@ -197,7 +256,7 @@ class CorrelationProfile(object):
                 break
             # only continue (i.e., increment the count, etc)
             # if we aren't ignoring this character
-            if (c in characters_to_ignore.chars):
+            if (c in self.textmeta.parsehandler.ignore.chars):
                 continue
             pos = pos + 1
             # If c is a focal character, add it to the match list
@@ -223,14 +282,48 @@ class CorrelationProfile(object):
                 n.add(e)
             self.nodes.append(n)
 
+    # Prints pertainent information from all nodes
     def printNodes(self):
         for n in self.nodes:
             n.printNode()
-                    
+
+    # Counts all matches within a certain distance for all
+    # focal characters matches, allows double-counting for
+    # places where two focal characters are in proximity <= 2*cost
     def countWithin(self,cost):
         count = 0
         for n in self.nodes:
             count = count + n.countWithin(cost)
         return count
+    
+    # Count character occurence in a text
+    def countCharInText(self,char):
+        count = 0
+        for f in self.focalMatches:
+            if f.char == char:
+                count = count + 1
+        for c in self.comparisonMatches:
+            if c.char == char:
+                count = count + 1
+        return count
 
-characters_to_ignore = CharacterClass("ignore",('\ '))
+    # Counts totals for specific occurance of a character
+    # with absolute distance <= cost
+    def countMatchesForCharacterWithin(char,cost):
+        return len(getMatchesForCharacterWithin(char,cost))
+    
+    # Gets all matches in node list with char as focal
+    # and absolute distance <= cost
+    def getMatchesForCharacterWithin(self,char,cost):
+        list = []
+        for n in self.nodes:
+            nodelist = n.getWithin(cost)
+            for nl in nodelist:
+                if nl.focal == char:
+                    list.append(nl)
+        return list
+
+if __name__ == '__main__':
+    handler = ParseHandler()
+    handler.setTextDirectoryPath("/Users/bucci/dev/CorrelationProfiler/texts")
+    handler.countReport()
