@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import threading
+import codecs
 
 ##############################################
 class ParseHandler(object):
@@ -70,18 +71,18 @@ class ParseHandler(object):
         for t in self.texts:
             text_count = text_count + 1
             print "Generating CP for file number " + str(text_count) + " : " + t.id
-            thread = threading.Thread(target=t.generateCorrelationProfile,args=(focal,comparison,))
-            thread.start()
+            t.generateCorrelationProfile(focal,comparison)
         for t in self.texts:
+            text_count = text_count + 1
             print "Generating counts for " + t.id
             report = open('/Users/bucci/reports/' + t.id + '-count-report.txt', 'w')
             for cp in t.profiles:
                 for cc in comparison:
                     for char in cc.chars:
                         count = cp.countCharInText(char);
-                        report.write(char + "," + count + '\n')
-                        charcounts[char] = charcounts[char].value() + count
-                        sumtotals[cc.id[char]] = sumtotals[cc.id[char]].value() + count
+                        report.write(char + "," + str(count) + '\n')
+                        charcounts[char] = charcounts[char] + count
+                        sumtotals[cc.id][char] = sumtotals[cc.id][char] + count
             report.close()
         summary = open('/Users/bucci/reports/summary.txt', 'w')
         for c,v in charcounts.iteritems():
@@ -92,6 +93,7 @@ class ParseHandler(object):
                 count = count + value
             summary.write(cc + "," + str(count) + "\n")
         summary.close()
+        print "Done!"
 
 ##############################################
 # A focal character and an ordered list of
@@ -206,8 +208,8 @@ class CharacterClass(object):
 ##############################################
 # Text information for easy classification
 class TextMeta(object):
+# class TextMeta(threading.Thread):
     def __init__(self,textpath,ph):
-        print textpath
         # The handler
         self.parsehandler = ph
         # Parse the file path
@@ -222,16 +224,20 @@ class TextMeta(object):
         self.seg = splittext[4]
         self.punc = splittext[5].split(".")[0]
         # The text file itself
-        self.file = open(self.path)
+        self.file = codecs.open(self.path,encoding='utf-8')
         # The analyses
         self.profiles = []
-    
     
     # A function that generates a profile for comparing two or more
     # classes. The profile can be seen as a directed weighted graph
     # focalClass        : CharacterClass
     # comparisonClass   : list of CharacterClass
     def generateCorrelationProfile(self, focalClass, comparisonClasses):
+        #thread = threading.Thread(target=self.genHandler,args=(focalClass,comparisonClasses))
+        #thread.start()
+        self.genHandler(focalClass,comparisonClasses)
+
+    def genHandler(self,focalClass,comparisonClasses):
         profile = CorrelationProfile(focalClass, comparisonClasses, self)
         self.profiles.append(profile)
 
@@ -258,7 +264,8 @@ class CorrelationProfile(object):
         pos = 0
         while True:
             # we read the entire file one character at at time
-            c = self.textmeta.file.read(1)
+            str = self.textmeta.file.read(1)
+            c = str.encode('utf-8')
             # If not c, we've hit the end of the file
             if not c:
                 break
@@ -272,12 +279,12 @@ class CorrelationProfile(object):
                 m = Match(c,pos,self.focalClass)
                 self.focalMatches.append(m)
                 continue
-            # If c is a comparison class character, add it to the comparison
-            # match list
-            for characterClass in self.comparisonClasses:
-                if c in characterClass.chars:
-                   m = Match(c,pos,characterClass)
-                   self.comparisonMatches.append(m)
+            # If c is a comparison class character, add it to the comparison match list
+        
+            for cc in self.comparisonClasses:
+                if (c in cc.chars):
+                    m = Match(c,pos,cc)
+                    self.comparisonMatches.append(m)
 
     # Calculates edges between match nodes and generates
     # a directed edge object
