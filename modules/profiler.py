@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import threading
 
 ##############################################
 class ParseHandler(object):
@@ -17,7 +18,8 @@ class ParseHandler(object):
     # Loads all texts in a directory
     def loadAllTexts(self):
         for file in os.listdir(self.dirpath):
-            self.loadText(self.dirpath + "/" + file)
+            if file[0] != ".":
+                self.loadText(self.dirpath + "/" + file)
 
     # Returns a class from self.classes
     def getClass(self,id):
@@ -47,43 +49,48 @@ class ParseHandler(object):
     def loadClassTuple(self,tuple):
         list = []
         for t in tuple:
-            list.append(self.loadClass(t))
+            list.append(self.getClass(t))
         return list
     
     # Report for character counts
     def countReport(self):
-        focal = self.loadClass('null')
+        focal = self.getClass('null')
         comparison = self.loadClassTuple(('reduced_deity','reduced_god','reduced_punishment','reduced_reward','ubc_emotion','ubc_cognition','ubc_religion','ubc_morality'))
         charcounts = {}
         for cc in comparison:
             for char in cc.chars:
                 charcounts[char] = 0
         sumtotals = {}
-        for cc in comparision:
+        for cc in comparison:
             dict = {}
             for char in cc.chars:
                 dict[char] = 0
             sumtotals[cc.id] = dict
+        text_count = 0
         for t in self.texts:
-            t.generateCorrelationProfile(focal,comparison)
+            text_count = text_count + 1
+            print "Generating CP for file number " + str(text_count) + " : " + t.id
+            thread = threading.Thread(target=t.generateCorrelationProfile,args=(focal,comparison,))
+            thread.start()
         for t in self.texts:
-            report = open(t.id + '-count-report')
+            print "Generating counts for " + t.id
+            report = open('/Users/bucci/reports/' + t.id + '-count-report.txt', 'w')
             for cp in t.profiles:
                 for cc in comparison:
                     for char in cc.chars:
-                        count = cc.countCharInText(char);
+                        count = cp.countCharInText(char);
                         report.write(char + "," + count + '\n')
                         charcounts[char] = charcounts[char].value() + count
                         sumtotals[cc.id[char]] = sumtotals[cc.id[char]].value() + count
             report.close()
-        summary = open('summary')
+        summary = open('/Users/bucci/reports/summary.txt', 'w')
         for c,v in charcounts.iteritems():
-            summary.write(c + "," + v + "\n")
+            summary.write(c + "," + str(v) + "\n")
         for cc,chars in sumtotals.iteritems():
             count = 0
-            for chars,value in cc.iteritems():
+            for chars,value in sumtotals[cc].iteritems():
                 count = count + value
-            summary.write(cc.id + "," + count + "\n")
+            summary.write(cc + "," + str(count) + "\n")
         summary.close()
 
 ##############################################
@@ -200,6 +207,7 @@ class CharacterClass(object):
 # Text information for easy classification
 class TextMeta(object):
     def __init__(self,textpath,ph):
+        print textpath
         # The handler
         self.parsehandler = ph
         # Parse the file path
@@ -326,4 +334,5 @@ class CorrelationProfile(object):
 if __name__ == '__main__':
     handler = ParseHandler()
     handler.setTextDirectoryPath("/Users/bucci/dev/CorrelationProfiler/texts")
+    handler.loadAllTexts()
     handler.countReport()
