@@ -53,7 +53,7 @@
       </MacroExpansion>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "$(SRCROOT)/modules/profiler.py"
+            argument = "$(SRCROOT)/modules/console.py"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
