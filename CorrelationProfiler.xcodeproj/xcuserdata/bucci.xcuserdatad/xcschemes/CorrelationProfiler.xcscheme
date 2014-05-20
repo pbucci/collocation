@@ -53,7 +53,7 @@
       </MacroExpansion>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "$(SRCROOT)/modules/console.py"
+            argument = "$(SRCROOT)/modules/tests.py"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
