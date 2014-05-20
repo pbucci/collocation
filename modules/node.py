@@ -41,3 +41,30 @@ class Edge(object):
         self.dest = dest
         self.cost = cost
         self.abscost = abs(cost)
+
+class NodeProfile(object):
+    def __init__(self,focals,stopwords,delims,compares,focal,compare,stopword,delim,maxcost):
+        self.focals = focals
+        self.stopwords = stopwords
+        self.delims = delims
+        self.compares = compares
+        self.focal = focal
+        self.compare = compare
+        self.stopword = stopword
+        self.delim = delim
+        self.maxcost = maxcost
+
+    def getColocations(self,cost):
+        colocations = []
+        for f in self.focals[:]:
+            for e in f.edges:
+                if e.dest == compare and e.abscost <= cost:
+                    colocations.append(f)
+        return colocations
+
+    def countColocations(self,cost):
+        return len(self.getColocations(cost))
+
+    
+
+

@@ -72,6 +72,10 @@ class ParseHandler(cmd.Cmd):
         self.setTextDirectoryPath(line)
         self.loadAllTexts()
     
+    def do_generate_profiles(self,line):
+        for t in self.texts:
+            t.generateNodeProfile(line)
+    
     def do_print_dirpath(self,line):
         print self.dirpath
     
@@ -150,3 +154,4 @@ class ParseHandler(cmd.Cmd):
 
 if __name__ == '__main__':
     console = ParseHandler()
+    console.cmdloop()

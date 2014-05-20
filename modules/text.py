@@ -49,6 +49,7 @@ class TextHandler(object):
         nodes.clearQueue()
         for node in nodes.nodes:
             self.nodes.append(node)
+        self.file.close()
         
         # focal     : cc
         # compare   : cc
@@ -92,6 +93,9 @@ class TextHandler(object):
                     cost = cost - takeaway
                     if cost < maxcost:
                         f.add(Edge(f,c,cost))
+            p = NodeProfile(focals,stopwords,delims,compares,focal,compare,stopword,delim,maxcost)
+            self.profiles.append(p)
+
 
 
 
