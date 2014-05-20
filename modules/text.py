@@ -50,51 +50,51 @@ class TextHandler(object):
         for node in nodes.nodes:
             self.nodes.append(node)
         self.file.close()
-        
-        # focal     : cc
-        # compare   : cc
-        # stopword  : cc
-        # delim     : cc
-        # maxcost   : int
-        def generateNodeProfile(self,focal,compare,stopword,delim,maxcost=self.parsehandler.maxcost):
-            focals = []
-            stopwords = []
-            delims = []
-            compares = []
-            for n in self.nodes[:]:
-                if n.cc == focal:
-                    focals.append(n)
-                elif n.cc == stopword:
-                    stopwords.append(n)
-                elif n.cc == delim:
-                    delims.append(n)
-                elif n.cc == compares:
-                    compares.append(n)
-            for f in focals:
-                for s in stopwords:
-                    cost = f.pos - s.pos
-                    if cost < maxcost:
-                        f.add(Edge(f,s,cost))
-                for d in delims:
-                    cost = f.pos - s.pos
-                    takeaway = 0
-                    for e in f.edges:
-                        if e.abscost < abs(cost):
-                            takeaway = takeaway + 1
-                    cost = cost - takeaway
-                    if cost < maxcost:
-                        f.add(Edge(f,d,cost))
-                for c in compares:
-                    cost = f.pos - c.pos
-                    takeaway = 0
-                    for e in f.edges:
-                        if e.abscost < abs(cost):
-                            takeaway = takeaway + 1
-                    cost = cost - takeaway
-                    if cost < maxcost:
-                        f.add(Edge(f,c,cost))
-            p = NodeProfile(focals,stopwords,delims,compares,focal,compare,stopword,delim,maxcost)
-            self.profiles.append(p)
+    
+    # focal     : cc
+    # compare   : cc
+    # stopword  : cc
+    # delim     : cc
+    # maxcost   : int
+    def generateProfile(self,focal,compare,stopword,delim,maxcost=120):
+        focals = []
+        stopwords = []
+        delims = []
+        compares = []
+        for n in self.nodes[:]:
+            if n.cc == focal:
+                focals.append(n)
+            elif n.cc == stopword:
+                stopwords.append(n)
+            elif n.cc == delim:
+                delims.append(n)
+            elif n.cc == compare:
+                compares.append(n)
+        for f in focals:
+            for s in stopwords:
+                cost = f.pos - s.pos
+                if cost < maxcost:
+                    f.add(Edge(f,s,cost))
+            for d in delims:
+                cost = f.pos - s.pos
+                takeaway = 0
+                for e in f.edges:
+                    if e.abscost < abs(cost) and e.dest.cc == stopword:
+                        takeaway = takeaway + 1
+                cost = cost - takeaway
+                if cost < maxcost:
+                    f.add(Edge(f,d,cost))
+            for c in compares:
+                cost = f.pos - c.pos
+                takeaway = 0
+                for e in f.edges:
+                    if e.abscost < abs(cost) and (e.dest.cc == stopword or e.dest.cc == delim):
+                        takeaway = takeaway + 1
+                cost = cost - takeaway
+                if cost < maxcost:
+                    f.add(Edge(f,c,cost))
+        p = NodeProfile(focals,stopwords,delims,compares,focal,compare,stopword,delim,maxcost)
+        self.profiles.append(p)
 
 
 

@@ -21,10 +21,10 @@ class ParseHandler(cmd.Cmd):
         self.intro  = "Welcome to console!"  ## defaults to None
         self.texts = []
         self.classes = []
+        self.jobs = []
         self.loadAllClasses()
         self.ignore = self.getClass('ignore')
         self.maxcost = sys.maxint
-        self.dirpath = ""
     
     # Creates a TextMeta object
     def loadText(self,textpath):
@@ -35,6 +35,7 @@ class ParseHandler(cmd.Cmd):
     def loadAllTexts(self):
         for file in os.listdir(self.dirpath):
             if file[0] != ".":
+                print "Loading " + file + "."
                 self.loadText(self.dirpath + "/" + file)
     
     # Returns a class from self.classes
@@ -46,7 +47,7 @@ class ParseHandler(cmd.Cmd):
     
     # Sets the directory in which to look for texts
     def setTextDirectory(self,path):
-        self.dirpath = path
+        self.dirpath = str(path)
     
     # Loads classes from classes.py
     def loadAllClasses(self):
@@ -62,24 +63,76 @@ class ParseHandler(cmd.Cmd):
         self.classes.append(c)
     
     ## Command definitions ##
-
-    # Prints available classes
     def do_classes(self,line):
+        ''' Prints available classes.'''
         for c in self.classes:
             print c.id
-    
-    def do_load(self,line):
-        self.setTextDirectoryPath(line)
+
+    def do_set(self,line):
+        '''Set a profile property to run in this form:
+            
+            set,focal,ubc_words
+            
+            '''
+        command = line.split(",")
+        self.command[0] = command[1]
+
+    def do_job_batch(self):
+        '''Quick command for do all in job_batch function.'''
+        self.dirpath = "/Users/bucci/dev/CorrelationProfiler/test_texts"
         self.loadAllTexts()
-    
-    def do_generate_profiles(self,line):
+#        self.run_profile('t_vowels', 't_consonants', 't_stopsequences', 'null', 120) # test profile
+        self.run_profile('reduced_deity', 'reduced_reward', 'stopwords', 'delimiters', 120)
+        self.run_profile('reduced_gods', 'reduced_punishment', 'stopwords', 'delimiters', 120)
+        self.run_profile('reduced_gods', 'reduced_reward', 'stopwords', 'delimiters', 120)
+        self.run_profile('reduced_deity', 'ubc_morality', 'stopwords', 'delimiters', 120)
+        self.run_profile('reduced_deity', 'ubc_emotion', 'stopwords', 'delimiters', 120)
+        self.run_profile('reduced_deity', 'ubc_cognition', 'stopwords', 'delimiters', 120)
+        self.run_profile('reduced_deity', 'ubc_religion', 'stopwords', 'delimiters', 120)
+        self.run_profile('reduced_gods', 'ubc_morality', 'stopwords', 'delimiters', 120)
+        self.run_profile('reduced_gods', 'ubc_emotion', 'stopwords', 'delimiters', 120)
+        self.run_profile('reduced_gods', 'ubc_cognition', 'stopwords', 'delimiters', 120)
+        self.run_profile('reduced_gods', 'ubc_religion', 'stopwords', 'delimiters', 120)
+        print "Done!"
+
+    def run_profile(self,focal,comparison,stopwords,delimiters,maxcost):
+        file = open(self.dirpath + "_" + focal + "_" + comparison + "_" + stopwords + "_" + delimiters + '_report.csv', 'w')
+        print "Running profile: " + self.dirpath + "_" + focal + "_" + comparison + "_" + stopwords + "_" + delimiters
+        file.write("text,10,5,2,1,sentence\n")
         for t in self.texts:
-            t.generateNodeProfile(line)
+            t.generateProfile(self.getClass(focal),
+                              self.getClass(comparison),
+                              self.getClass(stopwords),
+                              self.getClass(delimiters),
+                              maxcost)
+            for p in t.profiles:
+                p.printProfile()
+        
+        for t in self.texts:
+            file.write(t.id + "_" + focal + "_" + comparison + ",")
+            for p in t.profiles:
+                for i in [10,5,2,1]:
+                    file.write(str(p.countColocations(i)) + ",")
+                file.write(str(p.countInSentence) + "\n")
+        file.close()
+
+    def do_load(self,line):
+        ''' Loads all texts in a directory.'''
+        print "Loading texts. Might take a minute."
+        self.setTextDirectory(line)
+        self.loadAllTexts()
+
+    def do_set_dirpath(self,line):
+        '''Sets the path to the text directory.'''
+        self.dirpath = line
+        print "Text path set to " + line
     
     def do_print_dirpath(self,line):
+        '''Prints the current text directory.'''
         print self.dirpath
     
     def do_set_max(self,line):
+        '''Sets the max cost for edges. Makes parsing faster the smaller it is.'''
         self.maxcost = line
         print "Max cost set to " + line
     
@@ -154,4 +207,4 @@ class ParseHandler(cmd.Cmd):
 
 if __name__ == '__main__':
     console = ParseHandler()
-    console.cmdloop()
+    console.do_job_batch()

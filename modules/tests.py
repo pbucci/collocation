@@ -19,6 +19,5 @@ class Tester(unittest.TestCase):
         #self.assertEquals(nodes[0].cc.id, "t_consonants" )
         #self.assertEquals(nodes[1].char, "stop")
 
-
 if __name__ == '__main__':
     unittest.main()
