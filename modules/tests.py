@@ -5,7 +5,7 @@ from console import *
 class Tester(unittest.TestCase):
     def setUp(self):
         self.p = ParseHandler()
-        self.p.setTextDirectory("/Users/bucci/dev/CorrelationProfiler/test_texts/")
+        self.p.setTextDirectory("/Users/bucci/dev/CorrelationProfiler/texts/")
         self.p.loadAllTexts()
 
     def test_classes(self):

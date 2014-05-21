@@ -1,4 +1,7 @@
+import threading
 import codecs
+import time
+import datetime
 from node import *
 ## TextHandler handles all text metadata ##
 class TextHandler(object):
@@ -19,19 +22,22 @@ class TextHandler(object):
         self.nodes = []
         # EdgeProfiles
         self.profiles = []
-        # Nodify
         self.nodify()
 
     # Makes each non-ignore character-phrase into a node
     # For example, a three-character phrase is one node
     def nodify(self):
         print "Generating nodes for " + self.id
+        ts = time.time()
+        print datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
         # Position in file
         pos = 0
         nodes = NodeHandler(self.parsehandler)
         while True:
+
             # we read the entire file one character at at time
-            current = self.file.read(1).encode('utf-8')
+            s = self.file.read(1)
+            current = unicode(s)
             # If not current, we've hit the end of the file
             if not current:
                 break
@@ -43,14 +49,17 @@ class TextHandler(object):
             pos = pos + 1
             for cc in self.parsehandler.classes:
                 for set in cc.chars:
-                    for char in set:
-                        if current == char:
-                            nodes.add(Node(current,cc,pos,set))
+                    if current == set:
+                        nodes.add(Node(current,cc,pos,set))
         nodes.clearQueue()
         for node in nodes.nodes:
             self.nodes.append(node)
+        for node in self.nodes:
+            node.printNode()
+        
         self.file.close()
-    
+        print("Done generating nodes for " + self.id)
+
     # focal     : cc
     # compare   : cc
     # stopword  : cc
@@ -93,8 +102,13 @@ class TextHandler(object):
                 cost = cost - takeaway
                 if cost < maxcost:
                     f.add(Edge(f,c,cost))
+                    print("Added an edge. " + self.id)
+
         p = NodeProfile(focals,stopwords,delims,compares,focal,compare,stopword,delim,maxcost)
         self.profiles.append(p)
+
+
+
 
 
 

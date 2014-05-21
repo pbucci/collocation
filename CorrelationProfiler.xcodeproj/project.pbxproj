@@ -13,7 +13,6 @@
 		0A97B527192AB82B00D29295 /* console.py */ = {isa = PBXFileReference; explicitFileType = text.script.python; fileEncoding = 4; name = console.py; path = modules/console.py; sourceTree = "<group>"; };
 		0AA6BDD819280EBF002B0828 /* test.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = test.py; path = ../../Desktop/test.py; sourceTree = "<group>"; };
 		0AB0A717192AC9C4002A4D47 /* text.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = text.py; path = modules/text.py; sourceTree = "<group>"; };
-		0AB0A718192ACF43002A4D47 /* characterclass.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = characterclass.py; path = modules/characterclass.py; sourceTree = "<group>"; };
 		0AD486F91927D87800D46DFD /* classes.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = classes.py; path = modules/classes.py; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -21,7 +20,6 @@
 		0A50B555192692D9001F4870 = {
 			isa = PBXGroup;
 			children = (
-				0AB0A718192ACF43002A4D47 /* characterclass.py */,
 				0AB0A717192AC9C4002A4D47 /* text.py */,
 				0A7D7377192AC17F0099397D /* node.py */,
 				0A97B527192AB82B00D29295 /* console.py */,

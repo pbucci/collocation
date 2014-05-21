@@ -6,6 +6,7 @@ class NodeHandler(object):
     
     # Check before appending to nodes
     def add(self,new):
+        print new.printNode()
         for old in self.queue:
             if new.key == old.key and new.cc == old.cc and len(old.key) > 1:
                 old.char = old.char + new.char
@@ -64,6 +65,7 @@ class Edge(object):
         self.dest = dest
         self.cost = cost
         self.abscost = abs(cost)
+        print "here"
 
     # Prints all of the good info about an edge
     def printEdge(self):
@@ -86,13 +88,14 @@ class NodeProfile(object):
         self.stopword = stopword
         self.delim = delim
         self.maxcost = maxcost
+        self.id = focal.id + "_" + compare.id + "_" + stopword.id + "_" + delim.id + "_" + str(maxcost)
     
     def printProfile(self):
         print "\n#### Profile ####"
         print "Focals: " + self.focal.id
         print "Compares: " + self.compare.id
         for f in self.focals:
-            print
+            print "\n"
             f.printNode()
 
     def getColocations(self,abscost):
@@ -103,17 +106,17 @@ class NodeProfile(object):
                     colocations.append(f)
         return colocations
 
-    def countColocations(self,cost):
-        return len(self.getColocations(cost))
+    def countColocations(self,abscost):
+        return len(self.getColocations(abscost))
 
     def countInSentence(self):
         right = None
         left = None
         list = []
-        for f in focals:
+        for f in self.focals:
             for e in f.edges:
                 if right == None or left == None:
-                    if e.dest.cc == delim:
+                    if e.dest.cc == self.delim:
                         if e.cost > 0:
                             left = e
                         if e.cost < 0:
@@ -121,6 +124,11 @@ class NodeProfile(object):
                 list.append(e)
         return len(list)
 
-
-
-
+# A set of characters with a unique identifier
+class CharacterClass(object):
+    def __init__(self,id,chars):
+        # a string identifier such as "gods" or "delimiters"
+        self.id = id
+        # A list of character-phrases
+        # Each with one or more character
+        self.chars = chars
