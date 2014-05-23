@@ -1,3 +1,4 @@
+from printer import log
 class NodeHandler(object):
     def __init__(self,parsehandler):
         self.parsehandler = parsehandler
@@ -19,7 +20,8 @@ class NodeHandler(object):
                 self.queue = new
 
     def clearQueue(self):
-        self.nodes.append(self.queue)
+        if (self.queue != None):
+            self.nodes.append(self.queue)
         self.queue = None
 
 # All pertainent characters in a text are represented
@@ -100,7 +102,7 @@ class NodeProfile(object):
         self.generateEdges()
     
     def generateEdges(self):
-        print("Generating edges for " + self.id)
+        log("Generating edges for " + self.id)
         for f in self.focals:
             f_pos = f.pos
             # For each newly-minted focal node, determine the distance to
@@ -145,7 +147,7 @@ class NodeProfile(object):
                 if abs(c_cost) <= self.maxcost:
                     f.add(Edge(f,c,c_cost))
                         
-        print("Done generating edges for " + self.id)
+        log("Done generating edges for " + self.id)
 
     def printProfile(self):
         print("\n#### Profile ####")

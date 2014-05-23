@@ -1,7 +1,6 @@
 import threading
 import codecs
-import time
-import datetime
+from printer import log
 from node import *
 
 ## TextHandler handles all text metadata ##
@@ -18,7 +17,7 @@ class TextHandler(object):
         self.name = splittext[3]
         self.seg = splittext[4]
         self.punc = splittext[5].split(".")[0]
-        self.file = codecs.open(self.path,encoding='utf-8')
+        self.file = None
         self.charnum = 0
         # Nodes
         self.nodes = []
@@ -28,15 +27,15 @@ class TextHandler(object):
     # Makes each non-ignore character-phrase into a node
     # For example, a three-character phrase is one node
     def nodify(self):
-        print("Generating nodes for " + self.id)
-        ts = time.time()
-        print(datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S'))
+        file = codecs.open(self.path,encoding='utf-8')
+        log("Generating nodes for " + self.id)
+
         # Position in file
         pos = 0
         nodes = NodeHandler(self.parsehandler)
         while True:
             # we read the entire file one character at at time
-            s = self.file.read(1)
+            s = file.read(1)
             current = s
             # If not current, we've hit the end of the file
             if not current:
@@ -54,10 +53,10 @@ class TextHandler(object):
                             nodes.add(Node(current,cc,pos,set))
         for node in nodes.nodes:
             self.nodes.append(node)
-        self.file.close()
+        file.close()
         self.charnum = pos
-        print("Done generating nodes for " + self.id)
-        print("There were " + str(self.charnum) +
+        log("Done generating nodes for " + self.id)
+        log("There were " + str(self.charnum) +
               " characters, and " + str(len(self.nodes)) + " nodes.")
 
     # focal     : cc

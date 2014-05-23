@@ -13,6 +13,7 @@ import readline
 from text import *
 from node import *
 from jobs import jobs
+from printer import log
 import sys
 
 class ParseHandler(cmd.Cmd):
@@ -37,7 +38,7 @@ class ParseHandler(cmd.Cmd):
     def loadAllTexts(self):
         for file in os.listdir(self.dirpath):
             if file[0] != '.':
-                print('Loading ' + file + '.')
+                log('Loading ' + file + '.')
                 self.loadText(self.dirpath + '/' + file)
         for text in self.texts:
             text.nodify()
@@ -47,7 +48,7 @@ class ParseHandler(cmd.Cmd):
         for c in self.classes:
             if c.id == id:
                 return c
-        print('No class found for ' + id)
+        log('No class found for ' + id)
         return None
     
     # Sets the directory in which to look for texts
@@ -67,7 +68,21 @@ class ParseHandler(cmd.Cmd):
         c = CharacterClass(id,chars)
         self.classes.append(c)
     
+    # Generates an Edge Profile for a set of terms
+    def run_profile(self,focal,comparison,stopwords,delimiters,maxcost):
+        log('Running profile: ' + focal + '_' + comparison + '_' + stopwords + '_' + delimiters)
+        for t in self.texts:
+            t.generateProfile(self.getClass(focal),
+                              self.getClass(comparison),
+                              self.getClass(stopwords),
+                              self.getClass(delimiters),
+                              maxcost)
+    def loadAllJobs(self):
+        for n,j in jobs.items():
+            self.jobs.append(j)
+    
     ## Command definitions ##
+    '''Prints the names of all loaded texts.'''
     def do_text_names(self,line):
         for t in self.texts:
             print(t.id)
@@ -87,12 +102,14 @@ class ParseHandler(cmd.Cmd):
             print(c.id)
 
     def do_count_all_focal_nodes(self,line):
+        '''Counts all focal nodes in all texts.'''
         for t in self.texts:
             for p in t.profiles:
                 count = len(p.focals)
                 print(p.id + " focal node count is " + str(count))
 
     def do_count_all_focal_edges(self,line):
+        '''For each focal node in each text, prints count of f.edges.'''
         for t in self.texts:
             for p in t.profiles:
                 count = p.countFocalEdges()
@@ -102,42 +119,33 @@ class ParseHandler(cmd.Cmd):
         '''Set a profile property to run in this form:
             
             set,focal,ubc_words
-            
-            '''
+
+        '''
         command = line.split(',')
         self.command[0] = command[1]
     
     def do_run_profile(self,line):
+        ''' Parses a line to run a specific profile.
+            example : run_profile,focal,compare,stop,delim,120
+        '''
         s = line.split(',')
-        self.run_profile(s[0],s[1],s[2],s[3],s[4])
+        self.run_profile(s[1],s[2],s[3],s[4],int(s[5]))
     
     def do_text_nodes(self,line):
+        '''Prints all nodes in all texts.'''
         for t in self.texts:
             for n in t.nodes:
                 n.printNode()
 
     def do_jobs(self,line):
         '''Quick command for do all in job_batch function.'''
-#        self.run_profile('t_vowels', 't_consonants', 't_stopsequences', 'delimiters', 120) # test profile
         for j in self.jobs:
             self.run_profile(j[0], j[1], j[2], j[3], j[4])
-        print('Done running job batch.')
-
-    # Generates an Edge Profile for a set of terms
-    def run_profile(self,focal,comparison,stopwords,delimiters,maxcost):
-        print('Running profile: ' + focal + '_' + comparison + '_' + stopwords + '_' + delimiters)
-        for t in self.texts:
-            t.generateProfile(self.getClass(focal),
-                              self.getClass(comparison),
-                              self.getClass(stopwords),
-                              self.getClass(delimiters),
-                              maxcost)
-    def loadAllJobs(self):
-        for j in jobs:
-            self.jobs.append(j)
+        log('Done running job batch.')
 
     # print summary report
     def do_summary(self,line):
+        '''Prints summary to console.'''
         for t in self.texts:
             print(t.id)
             for p in t.profiles:
@@ -153,6 +161,7 @@ class ParseHandler(cmd.Cmd):
 
     # print summary report
     def do_save_summary(self,line):
+        '''Prints a summary to CSV.'''
         file = open(self.dirpath + 'summary.csv', 'w')
         file.write('id,120,10,5,2,1,sentence\n')
         for t in self.texts:
@@ -169,6 +178,7 @@ class ParseHandler(cmd.Cmd):
                 
     # Prints profile to console
     def do_profiles(self,line):
+        '''Prints all profiles.'''
         for t in self.texts:
             print(t.id)
             for p in t.profiles:
@@ -176,7 +186,9 @@ class ParseHandler(cmd.Cmd):
 
     def do_load(self,line):
         ''' Loads all texts in a directory.'''
-        print('Loading texts and jobs. Might take a minute.')
+        log('Loading texts and jobs. Might take a minute.')
+        del self.texts[:]
+        del self.jobs[:]
         self.loadAllJobs()
         self.loadAllTexts()
     
