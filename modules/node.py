@@ -1,25 +1,26 @@
 class NodeHandler(object):
     def __init__(self,parsehandler):
         self.parsehandler = parsehandler
-        self.queue = []
+        # One-item queue
+        self.queue = None
         self.nodes = []
     
     # Check before appending to nodes
     def add(self,new):
-        print new.printNode()
-        for old in self.queue:
-            if new.key == old.key and new.cc == old.cc and len(old.key) > 1:
-                old.char = old.char + new.char
-                break
+        if self.queue == None:
+            self.queue = new
         else:
-            self.queue.append(new)
+            if (new.key == self.queue.key and
+                new.cc == self.queue.cc and
+                len(self.queue.key) > 1):
+                self.queue.char = self.queue.char + new.char
+            else:
+                self.nodes.append(self.queue)
+                self.queue = new
 
-    # Remove all nodes in queue
     def clearQueue(self):
-        for n in self.queue:
-            if n.key == n.char:
-                self.nodes.append(n)
-        del self.queue[:]
+        self.nodes.append(self.queue)
+        self.queue = None
 
 # All pertainent characters in a text are represented
 # as nodes.
@@ -47,12 +48,17 @@ class Node(object):
     def getRight(self):
         rpos = self.pos + len(self.char) - 1
         return rpos
-
+    
+    # returns an edge count
+    def countEdges(self):
+        count = len(self.edges)
+        return count
+    
     # Prints all of the good info about a node
     def printNode(self):
-        print "\t#### Node ####"
-        print "\tClass: " + self.cc.id
-        print "\tKey: " + self.key
+        print("\t#### Node ####")
+        print("\tClass: " + self.cc.id)
+        print("\tKey: " + self.key)
         for e in self.edges:
             e.printEdge()
 
@@ -65,20 +71,21 @@ class Edge(object):
         self.dest = dest
         self.cost = cost
         self.abscost = abs(cost)
-        print "here"
-
+        self.cc = dest.cc
+    
     # Prints all of the good info about an edge
     def printEdge(self):
-        print "\t\t#### Edge ####"
-        print "\t\tId: " + self.id
-        print "\t\tOrigin: " + self.orig.id
-        print "\t\tDestination: " + self.dest.id
-        print "\t\tCost: " + str(self.cost)
-        print "\t\tAbsolute cost: " + str(self.abscost) + "\n"
-
+        print("\t\t#### Edge ####")
+        print("\t\tClass: " + self.cc.id)
+        print("\t\tId: " + self.id)
+        print("\t\tOrigin: " + self.orig.id)
+        print("\t\tDestination: " + self.dest.id)
+        print("\t\tCost: " + str(self.cost))
+        print("\t\tAbsolute cost: " + str(self.abscost) + "\n")
 
 class NodeProfile(object):
-    def __init__(self,focals,stopwords,delims,compares,focal,compare,stopword,delim,maxcost):
+    def __init__(self,focals,stopwords,delims,compares,focal,
+                 compare,stopword,delim,maxcost):
         self.focals = focals
         self.stopwords = stopwords
         self.delims = delims
@@ -88,14 +95,64 @@ class NodeProfile(object):
         self.stopword = stopword
         self.delim = delim
         self.maxcost = maxcost
-        self.id = focal.id + "_" + compare.id + "_" + stopword.id + "_" + delim.id + "_" + str(maxcost)
+        self.id = (focal.id + "_" + compare.id + "_" +
+                   stopword.id + "_" + delim.id + "_" + str(maxcost))
+        self.generateEdges()
     
-    def printProfile(self):
-        print "\n#### Profile ####"
-        print "Focals: " + self.focal.id
-        print "Compares: " + self.compare.id
+    def generateEdges(self):
+        print("Generating edges for " + self.id)
         for f in self.focals:
-            print "\n"
+            f_pos = f.pos
+            # For each newly-minted focal node, determine the distance to
+            # each stopword if the node is within maxcost absolute distance.
+            # This is because we don't want to count these words towards the
+            # distance of future nodes.
+            for s in self.stopwords:
+                s_cost = f_pos - s.pos
+                if abs(s_cost) <= self.maxcost:
+                    f.add(Edge(f,s,s_cost))
+            # Do the same for the delimiters.
+            for d in self.delims:
+                d_cost = f_pos - d.pos
+                d_takeaway = 0
+                for e in f.edges:
+                    if (((e.dest.pos > d.pos and e.dest.pos < f.pos) or
+                            (e.dest.pos < d.pos and e.dest.pos > f.pos)) and
+                                (e.dest.cc == self.stopword)):
+                        d_takeaway += 1
+                if d_cost < 0:
+                    d_cost += d_takeaway
+                elif d_cost > 0:
+                    d_cost -= d_takeaway
+                if abs(d_cost) <= self.maxcost:
+                    f.add(Edge(f,d,d_cost))
+                    
+            # Now we can calculate the compares by the distance ignoring
+            # stopwords and delimiters, giving a better true distance
+            for c in self.compares:
+                c_cost = f_pos - c.pos
+                takeaway = 0
+                for e in f.edges:
+                    if (((e.dest.pos > c.pos and e.dest.pos < f.pos) or
+                         (e.dest.pos < c.pos and e.dest.pos > f.pos)) and
+                            (e.dest.cc == self.stopword or
+                             e.dest.cc == self.delim)):
+                        takeaway += 1
+                if c_cost < 0:
+                    c_cost += takeaway
+                elif c_cost > 0:
+                    c_cost -= takeaway
+                if abs(c_cost) <= self.maxcost:
+                    f.add(Edge(f,c,c_cost))
+                        
+        print("Done generating edges for " + self.id)
+
+    def printProfile(self):
+        print("\n#### Profile ####")
+        print("Focals: " + self.focal.id)
+        print("Compares: " + self.compare.id)
+        for f in self.focals:
+            print("\n")
             f.printNode()
 
     def getColocations(self,abscost):
@@ -108,21 +165,40 @@ class NodeProfile(object):
 
     def countColocations(self,abscost):
         return len(self.getColocations(abscost))
-
-    def countInSentence(self):
-        right = None
-        left = None
-        list = []
+    
+    def countFocalEdges(self):
+        count = 0
         for f in self.focals:
+            count = count + f.countEdges()
+
+    def countCompareNodes(self):
+        return len(compares)
+    
+    def getClosestTwoDelimiterPositions(self,focal):
+        first = -1
+        second = -1
+        for e in focal.edges:
+            if first == -1 and e.cc == self.delim:
+                first = e.dest.pos
+            elif second == -1 and e.cc == self.delim:
+                second = e.dest.pos
+            elif (first != -1 and second != -1) or (e.abscost > self.maxcost):
+                break
+        return first,second
+    
+    def countInSentence(self):
+        count = 0
+        for f in self.focals:
+            closest = self.getClosestTwoDelimiterPositions(f)
+            left = min(closest[0],closest[1])
+            right = max(closest[0],closest[1])
             for e in f.edges:
-                if right == None or left == None:
-                    if e.dest.cc == self.delim:
-                        if e.cost > 0:
-                            left = e
-                        if e.cost < 0:
-                            right = e
-                list.append(e)
-        return len(list)
+                pos = e.dest.pos
+                if (e.cc == self.compare and
+                  ((pos >= left and pos < f.pos) or
+                   (pos <= right and pos > f.pos))):
+                    count = count + 1
+        return count
 
 # A set of characters with a unique identifier
 class CharacterClass(object):

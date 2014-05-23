@@ -3,6 +3,7 @@ import codecs
 import time
 import datetime
 from node import *
+
 ## TextHandler handles all text metadata ##
 class TextHandler(object):
     def __init__(self,path,parsehandler):
@@ -18,26 +19,25 @@ class TextHandler(object):
         self.seg = splittext[4]
         self.punc = splittext[5].split(".")[0]
         self.file = codecs.open(self.path,encoding='utf-8')
+        self.charnum = 0
         # Nodes
         self.nodes = []
         # EdgeProfiles
         self.profiles = []
-        self.nodify()
-
+    
     # Makes each non-ignore character-phrase into a node
     # For example, a three-character phrase is one node
     def nodify(self):
-        print "Generating nodes for " + self.id
+        print("Generating nodes for " + self.id)
         ts = time.time()
-        print datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+        print(datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S'))
         # Position in file
         pos = 0
         nodes = NodeHandler(self.parsehandler)
         while True:
-
             # we read the entire file one character at at time
             s = self.file.read(1)
-            current = unicode(s)
+            current = s
             # If not current, we've hit the end of the file
             if not current:
                 break
@@ -49,16 +49,16 @@ class TextHandler(object):
             pos = pos + 1
             for cc in self.parsehandler.classes:
                 for set in cc.chars:
-                    if current == set:
-                        nodes.add(Node(current,cc,pos,set))
-        nodes.clearQueue()
+                    for char in set:
+                        if current == char:
+                            nodes.add(Node(current,cc,pos,set))
         for node in nodes.nodes:
             self.nodes.append(node)
-        for node in self.nodes:
-            node.printNode()
-        
         self.file.close()
+        self.charnum = pos
         print("Done generating nodes for " + self.id)
+        print("There were " + str(self.charnum) +
+              " characters, and " + str(len(self.nodes)) + " nodes.")
 
     # focal     : cc
     # compare   : cc
@@ -70,6 +70,7 @@ class TextHandler(object):
         stopwords = []
         delims = []
         compares = []
+        # Sort the nodes into their correct categories
         for n in self.nodes[:]:
             if n.cc == focal:
                 focals.append(n)
@@ -79,56 +80,6 @@ class TextHandler(object):
                 delims.append(n)
             elif n.cc == compare:
                 compares.append(n)
-        for f in focals:
-            for s in stopwords:
-                cost = f.pos - s.pos
-                if cost < maxcost:
-                    f.add(Edge(f,s,cost))
-            for d in delims:
-                cost = f.pos - s.pos
-                takeaway = 0
-                for e in f.edges:
-                    if e.abscost < abs(cost) and e.dest.cc == stopword:
-                        takeaway = takeaway + 1
-                cost = cost - takeaway
-                if cost < maxcost:
-                    f.add(Edge(f,d,cost))
-            for c in compares:
-                cost = f.pos - c.pos
-                takeaway = 0
-                for e in f.edges:
-                    if e.abscost < abs(cost) and (e.dest.cc == stopword or e.dest.cc == delim):
-                        takeaway = takeaway + 1
-                cost = cost - takeaway
-                if cost < maxcost:
-                    f.add(Edge(f,c,cost))
-                    print("Added an edge. " + self.id)
-
-        p = NodeProfile(focals,stopwords,delims,compares,focal,compare,stopword,delim,maxcost)
-        self.profiles.append(p)
-
-
-
-
-
-
-
-
-
-
-
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        p = NodeProfile(focals,stopwords,delims,compares,
+                        focal,compare,stopword,delim,maxcost)
+        self.profiles.append(p)            
