@@ -92,6 +92,7 @@ class NodeProfile(object):
         log("Generating edges for " + self.id)
         max = self.maxcost
         neg_max = (-1 * max)
+        edge_count = 0
         # The list position of the first found element so we don't need to
         # keep checking the beginning of the list when abs(cost) > maxcost
         first_stop = 0
@@ -105,7 +106,6 @@ class NodeProfile(object):
             list = []
             add = list.append
             f_pos = f.pos
-            log(f_pos)
             # For each newly-minted focal node, determine the distance to
             # each stopword if the node is within maxcost absolute distance.
             # This is because we don't want to count these words towards the
@@ -121,6 +121,7 @@ class NodeProfile(object):
                         found_first_stop = True
                         first_stop = (stop_index)
                     add(Edge(s,s_cost))
+                    edge_count += 1
                 stop_index += 1
         
             # Do the same for the delimiters.
@@ -147,6 +148,7 @@ class NodeProfile(object):
                         found_first_delim = True
                         first_delim = (delim_index)
                     add(Edge(d,d_cost))
+                    edge_count += 1
                 delim_index += 1
             
             # Now we can calculate the compares by the distance ignoring
@@ -175,13 +177,10 @@ class NodeProfile(object):
                         found_first_compare = True
                         first_compare = (compare_index)
                     add(Edge(c,c_cost))
+                    edge_count += 1
                 compare_index += 1
-            print("Looked at this many stops: " + str(stop_index - first_stop))
-            print("Looked at this many delims: " + str(delim_index - first_delim))
-            print("Looked at this many compares: " + str(compare_index - first_compare))
-            print("First stop at : " + str(first_stop))
             gc.enable()
-            f.edges = list
+            f.edges = list[:]
 
     def printProfile(self):
         print("\n#### Profile ####")
@@ -210,10 +209,10 @@ class NodeProfile(object):
     def countCompareNodes(self):
         return len(compares)
     
-    def getClosestTwoDelimiterPositions(self,focal):
+    def getClosestTwoDelimiterPositions(self,edges):
         first = -1
         second = -1
-        for e in focal.edges:
+        for e in edges:
             if first == -1 and e.cc == self.delim:
                 first = e.pos
             elif second == -1 and e.cc == self.delim:
@@ -225,16 +224,41 @@ class NodeProfile(object):
     def countInSentence(self):
         count = 0
         for f in self.focals:
-            closest = self.getClosestTwoDelimiterPositions(f)
+            edges = self.mergesort(f.edges)
+            closest = self.getClosestTwoDelimiterPositions(edges)
             left = min(closest[0],closest[1])
             right = max(closest[0],closest[1])
-            for e in f.edges:
+            for e in edges:
                 pos = e.pos
                 if (e.cc == self.compare and
                   ((pos >= left and pos < f.pos) or
                    (pos <= right and pos > f.pos))):
                     count = count + 1
         return count
+    
+    def mergesort(self,list):
+        mid = int(len(list)/2)
+        result = self.merge(list[mid:],list[:mid])
+        return result
+
+    def merge(self,left,right):
+        result = []
+        left_idx, right_idx = 0, 0
+        while left_idx < len(left) and right_idx < len(right):
+            # change the direction of this comparison to change the direction of the sort
+            if abs(left[left_idx].cost) <= abs(right[right_idx].cost):
+                result.append(left[left_idx])
+                left_idx += 1
+            else:
+                result.append(right[right_idx])
+                right_idx += 1
+        if left:
+            result.extend(left[left_idx:])
+        if right:
+            result.extend(right[right_idx:])
+        return result
+
+            
 
 # A set of characters with a unique identifier
 class CharacterClass(object):

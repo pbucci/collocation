@@ -86,4 +86,4 @@ class TextHandler(object):
                 compares.append(n)
         p = NodeProfile(focals,stopwords,delims,compares,
                         focal,compare,stopword,delim,maxcost)
-        self.profiles.append(p)            
+        self.profiles.append(p)     

@@ -104,6 +104,7 @@ class ParseHandler(cmd.Cmd):
     def do_count_all_focal_nodes(self,line):
         '''Counts all focal nodes in all texts.'''
         for t in self.texts:
+            print(t.id)
             for p in t.profiles:
                 count = len(p.focals)
                 print(p.id + " focal node count is " + str(count))
