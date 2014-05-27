@@ -148,7 +148,7 @@ class ParseHandler(cmd.Cmd):
     def do_summary(self,line):
         '''Prints summary to console.'''
         for t in self.texts:
-            print(t.id)
+            print(t.id + " with " + str(len(t.profiles)) + " num of profiles")
             for p in t.profiles:
                 print(p.id)
                 print("120,10,5,2,1,sentence")
@@ -159,6 +159,7 @@ class ParseHandler(cmd.Cmd):
                 one = p.countColocations(1)
                 sentence = p.countInSentence()
                 print(str(one_twenty) + ',' + str(ten) + ',' + str(five) + ',' + str(two) + ',' + str(one) + ',' + str(sentence))
+
 
     # print summary report
     def do_save_summary(self,line):

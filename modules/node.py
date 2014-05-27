@@ -47,6 +47,9 @@ class Node(object):
         count = len(self.edges)
         return count
     
+    def add(self,edge):
+        self.edges.append(edge)
+    
     # Prints all of the good info about a node
     def printNode(self):
         print("\t#### Node ####")
@@ -104,8 +107,6 @@ class NodeProfile(object):
         delim = self.delim.id
         for f in self.focals:
             gc.disable()
-            list = []
-            add = list.append
             f_pos = f.pos
             # For each newly-minted focal node, determine the distance to
             # each stopword if the node is within maxcost absolute distance.
@@ -121,7 +122,7 @@ class NodeProfile(object):
                     if found_first_stop == False:
                         found_first_stop = True
                         first_stop = (stop_index)
-                    add(Edge(s,s_cost))
+                    f.add(Edge(s,s_cost))
                     edge_count += 1
                 stop_index += 1
         
@@ -134,7 +135,7 @@ class NodeProfile(object):
                 d_takeaway = 0
                 if d_cost < neg_max:
                     break
-                for e in list:
+                for e in f.edges:
                     e_pos = e.pos
                     if (((e_pos > d_pos and e_pos < f_pos) or
                             (e_pos < d_pos and e_pos > f_pos)) and
@@ -148,7 +149,7 @@ class NodeProfile(object):
                     if found_first_delim == False:
                         found_first_delim = True
                         first_delim = (delim_index)
-                    add(Edge(d,d_cost))
+                    f.add(Edge(d,d_cost))
                     edge_count += 1
                 delim_index += 1
             
@@ -162,7 +163,7 @@ class NodeProfile(object):
                 if c_cost < neg_max:
                     break
                 takeaway = 0
-                for e in list:
+                for e in f.edges:
                     e_pos = e.pos
                     if (((e_pos > c_pos and e_pos < f_pos) or
                          (e_pos < c_pos and e_pos > f_pos)) and
@@ -177,11 +178,10 @@ class NodeProfile(object):
                     if found_first_compare == False:
                         found_first_compare = True
                         first_compare = (compare_index)
-                    add(Edge(c,c_cost))
+                    f.add(Edge(c,c_cost))
                     edge_count += 1
                 compare_index += 1
             gc.enable()
-            f.edges = list[:]
         log("Edge count was " + str(edge_count))
 
     def printProfile(self):
@@ -194,15 +194,11 @@ class NodeProfile(object):
 
     def getColocations(self,abscost):
         colocations = []
-        f_c = 0
-        e_c = 0
+        print("Compare class was : " + self.compare.id)
         for f in self.focals[:]:
-            f_c += 1
             for e in f.edges:
-                e_c += 1
                 if e.cc == self.compare.id and abs(e.cost) <= abscost:
                     colocations.append(f)
-        print("Focal count was " + str(f_c) + " and edge count was " + str(e_c))
         return colocations
 
     def countColocations(self,abscost):
@@ -244,7 +240,7 @@ class NodeProfile(object):
                    (pos <= right and pos > f.pos))):
                     count = count + 1
         return count
-    
+
     def mergesort(self,list):
         mid = int(len(list)/2)
         result = self.merge(list[mid:],list[:mid])
