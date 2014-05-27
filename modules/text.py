@@ -2,6 +2,7 @@ import threading
 import codecs
 from printer import log
 from node import *
+import gc
 
 ## TextHandler handles all text metadata ##
 class TextHandler(object):
@@ -27,12 +28,16 @@ class TextHandler(object):
     # Makes each non-ignore character-phrase into a node
     # For example, a three-character phrase is one node
     def nodify(self):
+        ignores = self.parsehandler.ignore.chars
+        classes = self.parsehandler.classes
         file = codecs.open(self.path,encoding='utf-8')
         log("Generating nodes for " + self.id)
 
         # Position in file
         pos = 0
         nodes = NodeHandler(self.parsehandler)
+        # Disable garbage collector while looping
+        gc.disable()
         while True:
             # we read the entire file one character at at time
             s = file.read(1)
@@ -42,19 +47,19 @@ class TextHandler(object):
                 break
             # only continue (i.e., increment the count, etc)
             # if we aren't ignoring this character
-            if (current in self.parsehandler.ignore.chars):
+            if (current in ignores):
                 nodes.clearQueue()
                 continue
             pos = pos + 1
-            for cc in self.parsehandler.classes:
+            for cc in classes:
                 for set in cc.chars:
                     for char in set:
                         if current == char:
                             nodes.add(Node(current,cc,pos,set))
-        for node in nodes.nodes:
-            self.nodes.append(node)
+        self.nodes = nodes.nodes[:]
         file.close()
         self.charnum = pos
+        gc.enable()
         log("Done generating nodes for " + self.id)
         log("There were " + str(self.charnum) +
               " characters, and " + str(len(self.nodes)) + " nodes.")
