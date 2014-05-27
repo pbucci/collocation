@@ -17,6 +17,7 @@ class NodeHandler(object):
                 len(self.queue.key) > 1):
                 self.queue.char = self.queue.char + new.char
             else:
+
                 self.nodes.append(self.queue)
                 self.queue = new
 
@@ -60,17 +61,16 @@ class Edge(object):
     def __init__(self,dest,cost):
         self.id = dest.id + "_" + str(cost)
         self.cost = cost
-        self.cc = dest.cc
+        self.cc = dest.cc.id
         self.pos = dest.pos
     
     # Prints all of the good info about an edge
     def printEdge(self):
         print("\t\t#### Edge ####")
-        print("\t\tClass: " + self.cc.id)
-        #print("\t\tId: " + self.id)
-        #print("\t\tDestination: " + self.dest.id)
-        #print("\t\tCost: " + str(self.cost))
-        #print("\t\tAbsolute cost: " + str(abs(self.cost)) + "\n")
+        print("\t\tClass: " + self.cc)
+        print("\t\tId: " + self.id)
+        print("\t\tCost: " + str(self.cost))
+        print("\t\tAbsolute cost: " + str(abs(self.cost)) + "\n")
 
 class NodeProfile(object):
     def __init__(self,focals,stopwords,delims,compares,focal,
@@ -88,6 +88,7 @@ class NodeProfile(object):
                    stopword.id + "_" + delim.id + "_" + str(maxcost))
         self.generateEdges()
     
+
     def generateEdges(self):
         log("Generating edges for " + self.id)
         max = self.maxcost
@@ -99,8 +100,8 @@ class NodeProfile(object):
         first_delim = 0
         first_compare = 0
         # Optimizations tricks
-        stopword = self.stopword
-        delim = self.delim
+        stopword = self.stopword.id
+        delim = self.delim.id
         for f in self.focals:
             gc.disable()
             list = []
@@ -116,7 +117,7 @@ class NodeProfile(object):
                 s_cost = f_pos - s.pos
                 if s_cost < neg_max:
                     break
-                if abs(s_cost) <= max:
+                if abs(s_cost) <= max and s_cost != 0:
                     if found_first_stop == False:
                         found_first_stop = True
                         first_stop = (stop_index)
@@ -143,7 +144,7 @@ class NodeProfile(object):
                     d_cost += d_takeaway
                 elif d_cost > 0:
                     d_cost -= d_takeaway
-                if abs(d_cost) <= max:
+                if abs(d_cost) <= max and d_cost != 0:
                     if found_first_delim == False:
                         found_first_delim = True
                         first_delim = (delim_index)
@@ -172,7 +173,7 @@ class NodeProfile(object):
                     c_cost += takeaway
                 elif c_cost > 0:
                     c_cost -= takeaway
-                if abs(c_cost) <= max:
+                if abs(c_cost) <= max and c_cost != 0:
                     if found_first_compare == False:
                         found_first_compare = True
                         first_compare = (compare_index)
@@ -181,6 +182,7 @@ class NodeProfile(object):
                 compare_index += 1
             gc.enable()
             f.edges = list[:]
+        log("Edge count was " + str(edge_count))
 
     def printProfile(self):
         print("\n#### Profile ####")
@@ -192,19 +194,26 @@ class NodeProfile(object):
 
     def getColocations(self,abscost):
         colocations = []
+        f_c = 0
+        e_c = 0
         for f in self.focals[:]:
+            f_c += 1
             for e in f.edges:
-                if e.cc == self.compare and abs(e.cost) <= abscost:
+                e_c += 1
+                if e.cc == self.compare.id and abs(e.cost) <= abscost:
                     colocations.append(f)
+        print("Focal count was " + str(f_c) + " and edge count was " + str(e_c))
         return colocations
 
     def countColocations(self,abscost):
-        return len(self.getColocations(abscost))
+        count = len(self.getColocations(abscost))
+        return count
     
     def countFocalEdges(self):
         count = 0
         for f in self.focals:
             count = count + f.countEdges()
+        return count
 
     def countCompareNodes(self):
         return len(compares)
@@ -213,9 +222,9 @@ class NodeProfile(object):
         first = -1
         second = -1
         for e in edges:
-            if first == -1 and e.cc == self.delim:
+            if first == -1 and e.cc == self.delim.id:
                 first = e.pos
-            elif second == -1 and e.cc == self.delim:
+            elif second == -1 and e.cc == self.delim.id:
                 second = e.pos
             elif (first != -1 and second != -1) or (abs(e.cost) > self.maxcost):
                 break
@@ -230,7 +239,7 @@ class NodeProfile(object):
             right = max(closest[0],closest[1])
             for e in edges:
                 pos = e.pos
-                if (e.cc == self.compare and
+                if (e.cc == self.compare.id and
                   ((pos >= left and pos < f.pos) or
                    (pos <= right and pos > f.pos))):
                     count = count + 1

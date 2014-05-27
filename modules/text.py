@@ -32,10 +32,9 @@ class TextHandler(object):
         classes = self.parsehandler.classes
         file = codecs.open(self.path,encoding='utf-8')
         log("Generating nodes for " + self.id)
-
         # Position in file
         pos = 0
-        nodes = NodeHandler(self.parsehandler)
+        node_handler = NodeHandler(self.parsehandler)
         # Disable garbage collector while looping
         gc.disable()
         while True:
@@ -48,27 +47,22 @@ class TextHandler(object):
             # only continue (i.e., increment the count, etc)
             # if we aren't ignoring this character
             if (current in ignores):
-                nodes.clearQueue()
+                node_handler.clearQueue()
                 continue
             pos = pos + 1
             for cc in classes:
                 for set in cc.chars:
                     for char in set:
                         if current == char:
-                            nodes.add(Node(current,cc,pos,set))
-        self.nodes = nodes.nodes[:]
+                            node_handler.add(Node(current,cc,pos,set))
+        node_handler.clearQueue()
+        self.nodes = node_handler.nodes[:]
         file.close()
         self.charnum = pos
         gc.enable()
-        log("Done generating nodes for " + self.id)
-        log("There were " + str(self.charnum) +
+        log("\tThere were " + str(self.charnum) +
               " characters, and " + str(len(self.nodes)) + " nodes.")
 
-    # focal     : cc
-    # compare   : cc
-    # stopword  : cc
-    # delim     : cc
-    # maxcost   : int
     def generateProfile(self,focal,compare,stopword,delim,maxcost=120):
         focals = []
         stopwords = []
