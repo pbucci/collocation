@@ -5,6 +5,7 @@
 ## Location: http://www.eskimo.com/~jet/python/examples/cmd/
 ## Copyright (c) 2004, James Thiele
 ## Modified: Paul Bucci 2014
+## Purpose: Console framework for ease of use and debugging
 ## Website: PaulBucci.ca
 
 import os
@@ -77,11 +78,13 @@ class ParseHandler(cmd.Cmd):
                               self.getClass(stopwords),
                               self.getClass(delimiters),
                               maxcost)
+    # Loads dictionary from jobs.py
     def loadAllJobs(self):
         for n,j in jobs.items():
             self.jobs.append(j)
     
-    ## Command definitions ##
+    ###### Command definitions ######
+
     '''Prints the names of all loaded texts.'''
     def do_text_names(self,line):
         for t in self.texts:

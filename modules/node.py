@@ -52,9 +52,9 @@ class Node(object):
     
     # Prints all of the good info about a node
     def printNode(self):
-        print("\t#### Node ####")
-        print("\tClass: " + self.cc.id)
-        print("\tKey: " + self.key)
+        log("\t#### Node ####")
+        log("\tClass: " + self.cc.id)
+        log("\tKey: " + self.key)
         for e in self.edges:
             e.printEdge()
 
@@ -69,11 +69,11 @@ class Edge(object):
     
     # Prints all of the good info about an edge
     def printEdge(self):
-        print("\t\t#### Edge ####")
-        print("\t\tClass: " + self.cc)
-        print("\t\tId: " + self.id)
-        print("\t\tCost: " + str(self.cost))
-        print("\t\tAbsolute cost: " + str(abs(self.cost)) + "\n")
+        log("\t\t#### Edge ####")
+        log("\t\tClass: " + self.cc)
+        log("\t\tId: " + self.id)
+        log("\t\tCost: " + str(self.cost))
+        log("\t\tAbsolute cost: " + str(abs(self.cost)) + "\n")
 
 class NodeProfile(object):
     def __init__(self,focals,stopwords,delims,compares,focal,
@@ -91,7 +91,10 @@ class NodeProfile(object):
                    stopword.id + "_" + delim.id + "_" + str(maxcost))
         self.generateEdges()
     
-
+    # There are a lot of edges, so a quick search is dependent on
+    # having a reasonable upper bound (maxcost) on the length of a sentence.
+    # This upper bound allows each search to have <= 2*maxcount checks since
+    # we are guaranteed that each found item is within +- maxcost.
     def generateEdges(self):
         log("Generating edges for " + self.id)
         max = self.maxcost
@@ -116,9 +119,13 @@ class NodeProfile(object):
             stop_index = first_stop
             for s in self.stopwords[first_stop:]:
                 s_cost = f_pos - s.pos
+                # Stop at upper searching bound
                 if s_cost < neg_max:
                     break
+                # Double-checking constraints, might not be necessary
                 if abs(s_cost) <= max and s_cost != 0:
+                    # Set first matched stop character to
+                    # lower bound for searching
                     if found_first_stop == False:
                         found_first_stop = True
                         first_stop = (stop_index)
@@ -137,10 +144,15 @@ class NodeProfile(object):
                     break
                 for e in f.edges:
                     e_pos = e.pos
+                    # If this edge is between the delimiter and the focal
+                    # character, and it's a stopword, we'll need to account
+                    # for the position difference since stopwords are (sometimes)
+                    # to be considered the same as whitespace.
                     if (((e_pos > d_pos and e_pos < f_pos) or
                             (e_pos < d_pos and e_pos > f_pos)) and
                                 (e.cc == stopword)):
                         d_takeaway += 1
+                # Decrease the absolute cost
                 if d_cost < 0:
                     d_cost += d_takeaway
                 elif d_cost > 0:
@@ -165,6 +177,9 @@ class NodeProfile(object):
                 takeaway = 0
                 for e in f.edges:
                     e_pos = e.pos
+                    # Similarly to above, both stopwords and delimiters
+                    # are considered to not count towards edge costs for
+                    # comparison characters.
                     if (((e_pos > c_pos and e_pos < f_pos) or
                          (e_pos < c_pos and e_pos > f_pos)) and
                             (e.cc == stopword or
@@ -185,16 +200,16 @@ class NodeProfile(object):
         log("Edge count was " + str(edge_count))
 
     def printProfile(self):
-        print("\n#### Profile ####")
-        print("Focals: " + self.focal.id)
-        print("Compares: " + self.compare.id)
+        log("\n#### Profile ####")
+        log("Focals: " + self.focal.id)
+        log("Compares: " + self.compare.id)
         for f in self.focals:
-            print("\n")
+            log("\n")
             f.printNode()
 
     def getColocations(self,abscost):
         colocations = []
-        print("Compare class was : " + self.compare.id)
+        log("Compare class was : " + self.compare.id)
         for f in self.focals[:]:
             for e in f.edges:
                 if e.cc == self.compare.id and abs(e.cost) <= abscost:
@@ -214,56 +229,35 @@ class NodeProfile(object):
     def countCompareNodes(self):
         return len(compares)
     
-    def getClosestTwoDelimiterPositions(self,edges):
-        first = -1
-        second = -1
+    # Returns a tuple of the two closest delimiter positions.
+    # Relies on a sorted edge set.
+    def getClosestTwoDelimiterPositions(self,f_pos,edges):
+        left = -1
+        right = -1
         for e in edges:
-            if first == -1 and e.cc == self.delim.id:
-                first = e.pos
-            elif second == -1 and e.cc == self.delim.id:
-                second = e.pos
-            elif (first != -1 and second != -1) or (abs(e.cost) > self.maxcost):
-                break
-        return first,second
+            if e.pos < f_pos and e.pos > left:
+                left = e.pos
+            if e.pos > f_pos and e.pos < right:
+                right = e.pos
+        return left,right
     
+    # Count all matches within the two closest two delimiters.
     def countInSentence(self):
+        log("Started counting in sentence for " + self.id)
         count = 0
         for f in self.focals:
-            edges = self.mergesort(f.edges)
-            closest = self.getClosestTwoDelimiterPositions(edges)
-            left = min(closest[0],closest[1])
-            right = max(closest[0],closest[1])
+            edges = f.edges
+            f_pos = f.pos
+            closest = self.getClosestTwoDelimiterPositions(f_pos,edges)
+            left = closest[0]
+            right = closest[1]
             for e in edges:
                 pos = e.pos
                 if (e.cc == self.compare.id and
-                  ((pos >= left and pos < f.pos) or
-                   (pos <= right and pos > f.pos))):
+                  ((pos > left and pos < f.pos) or
+                   (pos < right and pos > f.pos))):
                     count = count + 1
         return count
-
-    def mergesort(self,list):
-        mid = int(len(list)/2)
-        result = self.merge(list[mid:],list[:mid])
-        return result
-
-    def merge(self,left,right):
-        result = []
-        left_idx, right_idx = 0, 0
-        while left_idx < len(left) and right_idx < len(right):
-            # change the direction of this comparison to change the direction of the sort
-            if abs(left[left_idx].cost) <= abs(right[right_idx].cost):
-                result.append(left[left_idx])
-                left_idx += 1
-            else:
-                result.append(right[right_idx])
-                right_idx += 1
-        if left:
-            result.extend(left[left_idx:])
-        if right:
-            result.extend(right[right_idx:])
-        return result
-
-            
 
 # A set of characters with a unique identifier
 class CharacterClass(object):
