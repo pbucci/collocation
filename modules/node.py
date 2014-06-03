@@ -1,5 +1,7 @@
 from printer import log
 import gc
+import sys
+
 class NodeHandler(object):
     def __init__(self,parsehandler):
         self.parsehandler = parsehandler
@@ -233,11 +235,12 @@ class NodeProfile(object):
     # Relies on a sorted edge set.
     def getClosestTwoDelimiterPositions(self,f_pos,edges):
         left = -1
-        right = -1
+        right = sys.maxsize
         for e in edges:
-            if e.pos < f_pos and e.pos > left:
+            if e.pos < f_pos and e.pos > left and e.cc == self.delim.id:
                 left = e.pos
-            if e.pos > f_pos and e.pos < right:
+            if e.pos > f_pos and e.pos < right and e.cc == self.delim.id:
+                print("here")
                 right = e.pos
         return left,right
     
@@ -254,8 +257,8 @@ class NodeProfile(object):
             for e in edges:
                 pos = e.pos
                 if (e.cc == self.compare.id and
-                  ((pos > left and pos < f.pos) or
-                   (pos < right and pos > f.pos))):
+                  ((pos > left and pos < f_pos) or
+                   (pos < right and pos > f_pos))):
                     count = count + 1
         return count
 
