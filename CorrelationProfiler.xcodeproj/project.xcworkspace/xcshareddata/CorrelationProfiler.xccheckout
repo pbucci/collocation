@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>6151D8D5-C6B5-43DB-9FF3-86E6FACF3826</string>
+	<key>IDESourceControlProjectName</key>
+	<string>CorrelationProfiler</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>BCEC7DE4-BD55-475C-937E-6DA53DDFCC38</key>
+		<string>https://github.com/pbucci/collocation.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>CorrelationProfiler.xcodeproj/project.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>BCEC7DE4-BD55-475C-937E-6DA53DDFCC38</key>
+		<string>../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>https://github.com/pbucci/collocation.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>110</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>BCEC7DE4-BD55-475C-937E-6DA53DDFCC38</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>BCEC7DE4-BD55-475C-937E-6DA53DDFCC38</string>
+			<key>IDESourceControlWCCName</key>
+			<string>CorrelationProfiler</string>
+		</dict>
+	</array>
+</dict>
+</plist>
