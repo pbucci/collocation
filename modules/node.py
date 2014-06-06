@@ -240,7 +240,6 @@ class NodeProfile(object):
             if e.pos < f_pos and e.pos > left and e.cc == self.delim.id:
                 left = e.pos
             if e.pos > f_pos and e.pos < right and e.cc == self.delim.id:
-                print("here")
                 right = e.pos
         return left,right
     
