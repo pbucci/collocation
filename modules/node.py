@@ -251,7 +251,7 @@ class NodeProfile(object):
             count += self.countInSentence(focal)
         return count
     
-    def countInSentence(self,focal):
+    def countInSentence(self,f):
         count = 0
         edges = f.edges
         f_pos = f.pos
@@ -285,22 +285,35 @@ class NodeProfile(object):
     #                  },
     #           ...
     #        }
-    #
+    #
     def focal_by_compare_by_edges(self):
         # Initialize counts to zero
-        f_chardict = self.focal.charDictDict()
-        c_chardict = self.compare.charDictDict()
-        for focal,dict in f_chardict.items():
-            for char,num_dict in c_chardict.items():
-                num_dict["120"]   = 0
-                num_dict["10"]    = 0
-                num_dict["5"]     = 0
-                num_dict["1"]     = 0
-                num_dict["sentence"] = 0
+        f_chardict = 	.OrderedDict()
+        for focal in self.focal.chars:
+            f_dict = collections.OrderedDict()
+            for char in self.compare.chars:
+                char_dict = collections.OrderedDict()
+                char_dict["120"] = 0
+                char_dict["10"] = 0
+                char_dict["5"] = 0
+                char_dict["1"] = 0
+                char_dict["sentence"] = 0
+                f_dict[char] = char_dict
+            f_chardict[focal] = f_dict
+    
+        for k,v in f_chardict.items():
+            print(k)
+            for i,k in v.items():
+                print("\t" + i)
+                for l,j in k.items():
+                    print("\t\t" + l + " : " + str(j))
 
         for focal in self.focals:
+            cc = 0
             for edge in focal.edges:
-                if edge.cc == self.compare.cc.id:
+                cc += 1
+                log(str(cc) + " " + edge.char + " " + edge.cc)
+                if edge.cc == self.compare.id:
                     if abs(edge.cost) <= 120:
                         f_chardict[focal.char][edge.char]["120"] += 1
                     if abs(edge.cost) <= 10:
@@ -322,17 +335,3 @@ class CharacterClass(object):
         # A list of character-phrases
         # Each with one or more character
         self.chars = chars
-    
-    # Returns dictionary with chars as keys
-    # and empty lists as values
-    def charListDict(self):
-        dict = collections.OrderedDict()
-        for c in self.chars:
-            dict[c] = []
-        return dict
-
-    def charDictDict(self):
-        dict = collections.OrderedDict()
-        for c in self.chars:
-            dict[c] = collections.OrderedDict()
-        return dict

@@ -196,26 +196,9 @@ class ParseHandler(cmd.Cmd):
             for p in t.profiles:
                 file = open(self.dirpath + "_" + p.id + "_per_char_count.csv", 'w')
                 dict = p.focal_by_compare_by_edges()
-                full_array = collections.OrderedDict()
                 file.write(p.compare.id + ",")
                 for c in p.compare.chars:
                     file.write(c + ",120,10,5,1,")
-                for focal,compares in dict.items():
-                    one_twenty = 0
-                    ten = 0
-                    five = 0
-                    one = 0
-                    sentence = 0
-                    for compare,edges in compares.items():
-                        if abs(edge.cost) <= 120:
-                            one_twenty += 1
-                        if abs(edge.cost) <= 10:
-                            ten += 1
-                        if abs(edge.cost) <= 5:
-                            five += 1
-                        if abs(edge.cost) <= 1:
-                            one += 1
-
 
     def do_load(self,line):
         ''' Loads all texts in a directory.'''
