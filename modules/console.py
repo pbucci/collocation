@@ -15,6 +15,7 @@ from text import *
 from node import *
 from jobs import jobs
 from printer import log
+import collections
 import sys
 
 class ParseHandler(cmd.Cmd):
@@ -160,11 +161,10 @@ class ParseHandler(cmd.Cmd):
                 five = p.countColocations(5)
                 two = p.countColocations(2)
                 one = p.countColocations(1)
-                sentence = p.countInSentence()
+                sentence = p.countAllInSentence()
                 print(str(one_twenty) + ',' + str(ten) + ',' + str(five) + ',' + str(two) + ',' + str(one) + ',' + str(sentence))
 
-
-    # print summary report
+    # Print summary report
     def do_save_summary(self,line):
         '''Prints a summary to CSV.'''
         file = open(self.dirpath + 'summary.csv', 'w')
@@ -177,7 +177,7 @@ class ParseHandler(cmd.Cmd):
                 five = p.countColocations(5)
                 two = p.countColocations(2)
                 one = p.countColocations(1)
-                sentence = p.countInSentence()
+                sentence = p.countAllInSentence()
                 file.write(str(one_twenty) + ',' + str(ten) + ',' + str(five) + ',' + str(two) + ',' + str(one) + ',' + str(sentence) + '\n')
         file.close()
                 
@@ -188,6 +188,34 @@ class ParseHandler(cmd.Cmd):
             print(t.id)
             for p in t.profiles:
                 p.printProfile()
+
+    # Print a per-character count to CSV
+    def do_spcc(self,line):
+        '''Prints a summary to CSV.'''
+        for t in self.texts:
+            for p in t.profiles:
+                file = open(self.dirpath + "_" + p.id + "_per_char_count.csv", 'w')
+                dict = p.focal_by_compare_by_edges()
+                full_array = collections.OrderedDict()
+                file.write(p.compare.id + ",")
+                for c in p.compare.chars:
+                    file.write(c + ",120,10,5,1,")
+                for focal,compares in dict.items():
+                    one_twenty = 0
+                    ten = 0
+                    five = 0
+                    one = 0
+                    sentence = 0
+                    for compare,edges in compares.items():
+                        if abs(edge.cost) <= 120:
+                            one_twenty += 1
+                        if abs(edge.cost) <= 10:
+                            ten += 1
+                        if abs(edge.cost) <= 5:
+                            five += 1
+                        if abs(edge.cost) <= 1:
+                            one += 1
+
 
     def do_load(self,line):
         ''' Loads all texts in a directory.'''

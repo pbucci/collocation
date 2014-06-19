@@ -1,6 +1,7 @@
 from printer import log
 import gc
 import sys
+import collections
 
 class NodeHandler(object):
     def __init__(self,parsehandler):
@@ -19,7 +20,6 @@ class NodeHandler(object):
                 len(self.queue.key) > 1):
                 self.queue.char = self.queue.char + new.char
             else:
-
                 self.nodes.append(self.queue)
                 self.queue = new
 
@@ -68,6 +68,7 @@ class Edge(object):
         self.cost = cost
         self.cc = dest.cc.id
         self.pos = dest.pos
+        self.char = dest.char
     
     # Prints all of the good info about an edge
     def printEdge(self):
@@ -176,7 +177,7 @@ class NodeProfile(object):
                 c_cost = f_pos - c_pos
                 if c_cost < neg_max:
                     break
-                takeaway = 0
+                c_takeaway = 0
                 for e in f.edges:
                     e_pos = e.pos
                     # Similarly to above, both stopwords and delimiters
@@ -186,11 +187,11 @@ class NodeProfile(object):
                          (e_pos < c_pos and e_pos > f_pos)) and
                             (e.cc == stopword or
                              e.cc == delim)):
-                        takeaway += 1
+                        c_takeaway += 1
                 if c_cost < 0:
-                    c_cost += takeaway
+                    c_cost += c_takeaway
                 elif c_cost > 0:
-                    c_cost -= takeaway
+                    c_cost -= c_takeaway
                 if abs(c_cost) <= max and c_cost != 0:
                     if found_first_compare == False:
                         found_first_compare = True
@@ -211,7 +212,6 @@ class NodeProfile(object):
 
     def getColocations(self,abscost):
         colocations = []
-        log("Compare class was : " + self.compare.id)
         for f in self.focals[:]:
             for e in f.edges:
                 if e.cc == self.compare.id and abs(e.cost) <= abscost:
@@ -229,10 +229,10 @@ class NodeProfile(object):
         return count
 
     def countCompareNodes(self):
-        return len(compares)
+        l = len(compares)
+        return l
     
     # Returns a tuple of the two closest delimiter positions.
-    # Relies on a sorted edge set.
     def getClosestTwoDelimiterPositions(self,f_pos,edges):
         left = -1
         right = sys.maxsize
@@ -242,24 +242,77 @@ class NodeProfile(object):
             if e.pos > f_pos and e.pos < right and e.cc == self.delim.id:
                 right = e.pos
         return left,right
-    
+
     # Count all matches within the two closest two delimiters.
-    def countInSentence(self):
+    def countAllInSentence(self):
         log("Started counting in sentence for " + self.id)
         count = 0
         for f in self.focals:
-            edges = f.edges
-            f_pos = f.pos
-            closest = self.getClosestTwoDelimiterPositions(f_pos,edges)
-            left = closest[0]
-            right = closest[1]
-            for e in edges:
-                pos = e.pos
-                if (e.cc == self.compare.id and
-                  ((pos > left and pos < f_pos) or
-                   (pos < right and pos > f_pos))):
+            count += self.countInSentence(focal)
+        return count
+    
+    def countInSentence(self,focal):
+        count = 0
+        edges = f.edges
+        f_pos = f.pos
+        closest = self.getClosestTwoDelimiterPositions(f_pos,edges)
+        left = closest[0]
+        right = closest[1]
+        for e in edges:
+            pos = e.pos
+            if (e.cc == self.compare.id and
+                ((pos > left and pos < f_pos) or
+                 (pos < right and pos > f_pos))):
                     count = count + 1
         return count
+
+    # Return a dictionary containing every focal character
+    # by every compare character by a list costs per compare
+    #
+    # Example:
+    #
+    # dict = {
+    #           "f_0" : {
+    #                   "c_0" : {
+    #                               "120"       : 50,
+    #                               "10"        : 19,
+    #                               "5"         : 5,
+    #                               "1"         : 1,
+    #                               "sentence"  : 14,
+    #                           }
+    #                   "c_1" : ...
+    #                   ...
+    #                  },
+    #           ...
+    #        }
+    #
+    def focal_by_compare_by_edges(self):
+        # Initialize counts to zero
+        f_chardict = self.focal.charDictDict()
+        c_chardict = self.compare.charDictDict()
+        for focal,dict in f_chardict.items():
+            for char,num_dict in c_chardict.items():
+                num_dict["120"]   = 0
+                num_dict["10"]    = 0
+                num_dict["5"]     = 0
+                num_dict["1"]     = 0
+                num_dict["sentence"] = 0
+
+        for focal in self.focals:
+            for edge in focal.edges:
+                if edge.cc == self.compare.cc.id:
+                    if abs(edge.cost) <= 120:
+                        f_chardict[focal.char][edge.char]["120"] += 1
+                    if abs(edge.cost) <= 10:
+                        f_chardict[focal.char][edge.char]["10"] += 1
+                    if abs(edge.cost) <= 5:
+                        f_chardict[focal.char][edge.char]["5"] += 1
+                    if abs(edge.cost) <= 1:
+                        f_chardict[focal.char][edge.char]["1"] += 1
+            sen = self.countInSentence(focal)
+            f_chardict[focal.char][edge.char]["sentence"] += sen
+        return f_chardict
+
 
 # A set of characters with a unique identifier
 class CharacterClass(object):
@@ -269,3 +322,17 @@ class CharacterClass(object):
         # A list of character-phrases
         # Each with one or more character
         self.chars = chars
+    
+    # Returns dictionary with chars as keys
+    # and empty lists as values
+    def charListDict(self):
+        dict = collections.OrderedDict()
+        for c in self.chars:
+            dict[c] = []
+        return dict
+
+    def charDictDict(self):
+        dict = collections.OrderedDict()
+        for c in self.chars:
+            dict[c] = collections.OrderedDict()
+        return dict
