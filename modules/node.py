@@ -265,6 +265,22 @@ class NodeProfile(object):
                  (pos < right and pos > f_pos))):
                     count = count + 1
         return count
+    
+    
+    def countInSentenceByEdge(self,f,edge):
+        count = 0
+        edges = f.edges
+        f_pos = f.pos
+        closest = self.getClosestTwoDelimiterPositions(f_pos,edges)
+        left = closest[0]
+        right = closest[1]
+        for e in edges:
+            pos = e.pos
+            if (e.char == edge.char and
+                ((pos > left and pos < f_pos) or
+                 (pos < right and pos > f_pos))):
+                    count = count + 1
+        return count
 
     # Return a dictionary containing every focal character
     # by every compare character by a list costs per compare
@@ -274,7 +290,7 @@ class NodeProfile(object):
     # dict = {
     #           "f_0" : {
     #                   "c_0" : {
-    #                               "120"       : 50,
+    #                               "50"       : 50,
     #                               "10"        : 19,
     #                               "5"         : 5,
     #                               "1"         : 1,
@@ -288,12 +304,12 @@ class NodeProfile(object):
     #
     def focal_by_compare_by_edges(self):
         # Initialize counts to zero
-        f_chardict = 	.OrderedDict()
+        f_chardict = collections.OrderedDict()
         for focal in self.focal.chars:
             f_dict = collections.OrderedDict()
             for char in self.compare.chars:
                 char_dict = collections.OrderedDict()
-                char_dict["120"] = 0
+                char_dict[str(self.maxcost)] = 0
                 char_dict["10"] = 0
                 char_dict["5"] = 0
                 char_dict["1"] = 0
@@ -301,29 +317,21 @@ class NodeProfile(object):
                 f_dict[char] = char_dict
             f_chardict[focal] = f_dict
     
-        for k,v in f_chardict.items():
-            print(k)
-            for i,k in v.items():
-                print("\t" + i)
-                for l,j in k.items():
-                    print("\t\t" + l + " : " + str(j))
-
         for focal in self.focals:
             cc = 0
             for edge in focal.edges:
                 cc += 1
-                log(str(cc) + " " + edge.char + " " + edge.cc)
                 if edge.cc == self.compare.id:
-                    if abs(edge.cost) <= 120:
-                        f_chardict[focal.char][edge.char]["120"] += 1
+                    if abs(edge.cost) <= self.maxcost:
+                        f_chardict[focal.char][edge.char][str(self.maxcost)] += 1
                     if abs(edge.cost) <= 10:
                         f_chardict[focal.char][edge.char]["10"] += 1
                     if abs(edge.cost) <= 5:
                         f_chardict[focal.char][edge.char]["5"] += 1
                     if abs(edge.cost) <= 1:
                         f_chardict[focal.char][edge.char]["1"] += 1
-            sen = self.countInSentence(focal)
-            f_chardict[focal.char][edge.char]["sentence"] += sen
+                    sen = self.countInSentenceByEdge(focal,edge)
+                    f_chardict[focal.char][edge.char]["sentence"] += sen
         return f_chardict
 
 

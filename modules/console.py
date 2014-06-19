@@ -28,7 +28,7 @@ class ParseHandler(cmd.Cmd):
         self.jobs = []
         self.loadAllClasses()
         self.ignore = self.getClass('ignore')
-        self.maxcost = 120
+        self.maxcost = 50
         self.dirpath = dirpath
     
     # Creates a TextMeta object
@@ -131,7 +131,7 @@ class ParseHandler(cmd.Cmd):
     
     def do_run_profile(self,line):
         ''' Parses a line to run a specific profile.
-            example : run_profile,focal,compare,stop,delim,120
+            example : run_profile,focal,compare,stop,delim,50
         '''
         s = line.split(',')
         self.run_profile(s[1],s[2],s[3],s[4],int(s[5]))
@@ -155,8 +155,8 @@ class ParseHandler(cmd.Cmd):
             print(t.id + " with " + str(len(t.profiles)) + " num of profiles")
             for p in t.profiles:
                 print(p.id)
-                print("120,10,5,2,1,sentence")
-                one_twenty = p.countColocations(120)
+                print(str(self.maxcost) + ",10,5,2,1,sentence")
+                one_twenty = p.countColocations(self.maxcost)
                 ten = p.countColocations(10)
                 five = p.countColocations(5)
                 two = p.countColocations(2)
@@ -168,11 +168,11 @@ class ParseHandler(cmd.Cmd):
     def do_save_summary(self,line):
         '''Prints a summary to CSV.'''
         file = open(self.dirpath + 'summary.csv', 'w')
-        file.write('id,120,10,5,2,1,sentence\n')
+        file.write('id,' + str(self.maxcost) + ',10,5,2,1,sentence\n')
         for t in self.texts:
             for p in t.profiles:
                 file.write(t.id + '_' + p.id + '_,')
-                one_twenty = p.countColocations(120)
+                one_twenty = p.countColocations(self.maxcost)
                 ten = p.countColocations(10)
                 five = p.countColocations(5)
                 two = p.countColocations(2)
@@ -198,7 +198,16 @@ class ParseHandler(cmd.Cmd):
                 dict = p.focal_by_compare_by_edges()
                 file.write(p.compare.id + ",")
                 for c in p.compare.chars:
-                    file.write(c + ",120,10,5,1,")
+                    file.write(c + "," + str(self.maxcost) + ",10,5,1,sentence,")
+                file.write("\n")
+                for f,chars in dict.items():
+                    file.write(f + ",")
+                    for char,count in chars.items():
+                        file.write(",")
+                        for k,v in count.items():
+                            file.write(str(v) + ",")
+                    file.write("\n")
+                file.close()
 
     def do_load(self,line):
         ''' Loads all texts in a directory.'''
