@@ -266,7 +266,6 @@ class NodeProfile(object):
                     count = count + 1
         return count
     
-    
     def countInSentenceByEdge(self,f,edge):
         count = 0
         edges = f.edges
@@ -334,6 +333,25 @@ class NodeProfile(object):
                     f_chardict[focal.char][edge.char]["sentence"] += sen
         return f_chardict
 
+    # Return dictionary of focal character hz in text
+    def focalCountDict(self):
+        f_chardict = {}
+        for focal in self.focal.cc.chars:
+            count = 0
+            for f in self.focals:
+                if f.char == focal:
+                    count += 1
+            f_chardict[focal] = count
+
+    # Return dictionary of focal character hz in text
+    def compareCountDict(self):
+        c_chardict = {}
+        for compare in self.compare.cc.chars:
+            count = 0
+            for c in self.compares:
+                if c.char == compare:
+                    count += 1
+            c_chardict[compare] = count
 
 # A set of characters with a unique identifier
 class CharacterClass(object):
