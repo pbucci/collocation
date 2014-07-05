@@ -2,9 +2,11 @@
 classes = {
     'null' : (''),
     'ignore' : (' ','\n','\r','\t'),
-    't_vowels' : ('a','ab'),
-    't_consonants' : ('b'),
-    't_stopsequences' : ('.', 'ppp'),
+    'cc1' : ('@#','x'),
+    'cc2' : ('@!','x'),
+    'cc3' : ('#!','x'),
+    'stopwords' : ('無'),
+    'delimiters' : ('.'),
 }
 
 

@@ -7,26 +7,50 @@ class NodeHandler(object):
     def __init__(self,parsehandler):
         self.parsehandler = parsehandler
         # One-item queue
-        self.queue = None
+        self.queue = []
+        self.next_queue = []
         self.nodes = []
     
     # Check before appending to nodes
     def add(self,new):
-        if self.queue == None:
-            self.queue = new
+        new_char = new.char
+        if len(new.key) == 1:
+            self.nodes.append(new)
         else:
-            if (new.key == self.queue.key and
-                new.cc == self.queue.cc and
-                len(self.queue.key) > 1):
-                self.queue.char = self.queue.char + new.char
+            if new_char == new.key[0]:
+                self.next_queue.append(new)
             else:
-                self.nodes.append(self.queue)
-                self.queue = new
+                for node in self.queue:
+                    next_char_index = node.key.index(node.char[-1]) + 1
+                    next_char = node.key[next_char_index]
+                    if new_char == next_char:
+                        node.char = node.char + new_char
+                        if node.char == node.key:
+                            self.nodes.append(node)
+                            self.queue.remove(node)
+                    else:
+                        self.queue.remove(node)
 
-    def clearQueue(self):
-        if (self.queue != None):
-            self.nodes.append(self.queue)
-        self.queue = None
+    def next_queue_clear(self):
+        for node in self.next_queue:
+            self.queue.append(node)
+        self.next_queue = []
+
+#        if self.queue == None:
+#            self.queue = new
+#        else:
+#            if (new.key == self.queue.key and
+#                new.cc == self.queue.cc and
+#                len(self.queue.key) > 1):
+#                self.queue.char = self.queue.char + new.char
+#            else:
+#                self.nodes.append(self.queue)
+#                self.queue = new
+#
+#    def clearQueue(self):
+#        if (self.queue != None):
+#            self.nodes.append(self.queue)
+#        self.queue = None
 
 # All pertainent characters in a text are represented
 # as nodes.
@@ -38,6 +62,7 @@ class Node(object):
         self.key = key
         self.edges = []
         self.id = self.key + "_" + str(self.pos)
+#        log("Creating a node with key : " + key)
 
     # Get right position for multi-character nodes
     def getRight(self):

@@ -49,12 +49,14 @@ class TextHandler(object):
             if (current in ignores):
                 continue
             pos = pos + 1
+            node_handler.next_queue_clear()
             for cc in classes:
-                for set in cc.chars:
-                    for char in set:
+                for key in cc.chars:
+                    for char in key:
                         if current == char:
-                            node_handler.add(Node(current,cc,pos,set))
-        node_handler.clearQueue()
+                            node_handler.add(Node(current,cc,pos,key))
+        for n in node_handler.nodes:
+            log("End of check : " + n.key)
         self.nodes = node_handler.nodes[:]
         file.close()
         self.charnum = pos
