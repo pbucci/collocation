@@ -8,50 +8,35 @@ class NodeHandler(object):
         self.parsehandler = parsehandler
         # One-item queue
         self.queue = []
-        self.next_queue = []
         self.nodes = []
     
     # Check before appending to nodes
     def add(self,new):
-        new_char = new.char
         if len(new.key) == 1:
             self.nodes.append(new)
         else:
-            if new_char == new.key[0]:
-                self.next_queue.append(new)
+            if (new.char == new.key[0]):
+                self.queue.append(new)
             else:
-                for node in self.queue:
-                    next_char_index = node.key.index(node.char[-1]) + 1
-                    next_char = node.key[next_char_index]
-                    if new_char == next_char:
-                        node.char = node.char + new_char
-                        if node.char == node.key:
-                            self.nodes.append(node)
-                            self.queue.remove(node)
+                temp_queue = []
+                while self.queue != []:
+                    node = self.queue.pop()
+                    log("Checking node : " + node.char + " with key " + node.key)
+                    if new.char != node.key[0]:
+                        if new.char != node.get_next_char():
+                            log("Removing char " + node.char + " with key " + node.key)
+                        else:
+                            node.char = node.char + new.char
+                            log(node.char + " ==? " + node.char)
+                            if node.char == node.key:
+                                log("Added node with key " + node.key + " and char " + node.char)
+                                self.nodes.append(node)
+                            else:
+                                temp_queue.append(node)
                     else:
-                        #
-                        self.queue.remove(node)
-
-    def next_queue_clear(self):
-        for node in self.next_queue:
-            self.queue.append(node)
-        self.next_queue = []
-
-#        if self.queue == None:
-#            self.queue = new
-#        else:
-#            if (new.key == self.queue.key and
-#                new.cc == self.queue.cc and
-#                len(self.queue.key) > 1):
-#                self.queue.char = self.queue.char + new.char
-#            else:
-#                self.nodes.append(self.queue)
-#                self.queue = new
-#
-#    def clearQueue(self):
-#        if (self.queue != None):
-#            self.nodes.append(self.queue)
-#        self.queue = None
+                        temp_queue.append(node)
+                for node in temp_queue:
+                    self.queue.append(node)
 
 # All pertainent characters in a text are represented
 # as nodes.
@@ -64,6 +49,15 @@ class Node(object):
         self.edges = []
         self.id = self.key + "_" + str(self.pos)
 #        log("Creating a node with key : " + key)
+
+    def get_next_char(self):
+        if len(self.key) != len(self.char):
+            next_index = self.key.index(self.char[-1]) + 1
+            next_char = self.key[next_index]
+            return next_char
+        else:
+            return None
+
 
     # Get right position for multi-character nodes
     def getRight(self):
