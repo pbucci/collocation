@@ -29,6 +29,7 @@ class NodeHandler(object):
                             self.nodes.append(node)
                             self.queue.remove(node)
                     else:
+                        #
                         self.queue.remove(node)
 
     def next_queue_clear(self):
