@@ -14,29 +14,30 @@ class NodeHandler(object):
     def add(self,new):
         if len(new.key) == 1:
             self.nodes.append(new)
-        else:
-            if (new.char == new.key[0]):
-                self.queue.append(new)
-            else:
-                temp_queue = []
-                while self.queue != []:
-                    node = self.queue.pop()
-                    log("Checking node : " + node.char + " with key " + node.key)
-                    if new.char != node.key[0]:
-                        if new.char != node.get_next_char():
-                            log("Removing char " + node.char + " with key " + node.key)
-                        else:
-                            node.char = node.char + new.char
-                            log(node.char + " ==? " + node.char)
-                            if node.char == node.key:
-                                log("Added node with key " + node.key + " and char " + node.char)
-                                self.nodes.append(node)
-                            else:
-                                temp_queue.append(node)
-                    else:
+        if (new.char == new.key[0]):
+            log("here")
+            self.queue.append(new)
+        temp_queue = []
+        while self.queue != []:
+            node = self.queue.pop()
+            # If the new character is the same as the first character of the key, continue
+            if new.char != node.key[0]:
+                # If the new character is not the next character needed,
+                # do nothing, thereby leaving the node off the queue
+                if new.char == node.get_next_char():
+                    node.char = node.char + new.char
+                    if node.char == node.key:
+                        log("Added node with key " + node.key + " and char " + node.char + " pos " + str(node.pos))
+                        self.nodes.append(node)
+                    elif node.char in node.key:
+                        log("Reappending " + node.key)
                         temp_queue.append(node)
-                for node in temp_queue:
-                    self.queue.append(node)
+                else:
+                    log("Removed node with key " + node.key + " and char " + node.char + " pos " + str(node.pos))
+            elif new.pos == node.pos:
+                temp_queue.append(node)
+        for node in temp_queue:
+            self.queue.append(node)
 
 # All pertainent characters in a text are represented
 # as nodes.
