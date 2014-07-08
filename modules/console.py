@@ -50,7 +50,7 @@ class ParseHandler(cmd.Cmd):
         for c in self.classes:
             if c.id == id:
                 return c
-        log('No class found for ' + id)
+        print('No class found for ' + id)
         return None
     
     # Sets the directory in which to look for texts
@@ -217,6 +217,37 @@ class ParseHandler(cmd.Cmd):
         self.loadAllJobs()
         self.loadAllTexts()
     
+    def do_hz(self,line):
+        '''Browse node profiles to get focal character frequencies'''
+        i = input("Please type the list of characters and focal class for which you wish to search.\nFor example, to search for the X character within the Capitals focal class, type:\n\t=>> Capitals,X\n" + self.prompt)
+        s = i.split(',')
+        cl = self.getClass(s[0])
+        chars = s[1:]
+        print('Class is ' + cl.id + ' and Characters are : ' + str(chars))
+        self.saveFrequency(cl,chars)
+
+    # Chars is list of characters
+    def saveFrequency(self,cl,chars):
+        file = open(self.dirpath + "_" + cl.id + "_char_frequency.csv", 'w')
+        file.write('text_name,')
+        for c in chars:
+            file.write(c + ',')
+        file.write('\n')
+        for text in self.texts:
+            file.write(text.id + ',')
+            for np in text.profiles:
+                if (np.focal == cl):
+                    new_dict = collections.OrderedDict()
+                    dict = np.focalCountDict()
+                    for c in chars:
+                        new_dict[c] = dict[c]
+                    for key,value in new_dict.items():
+                        print(key)
+                        file.write(str(value) + ',')
+                    file.write('\n')
+                    break
+        file.close()
+
     def do_set_dirpath(self,line):
         '''Sets the path to the text directory.'''
         self.dirpath = line

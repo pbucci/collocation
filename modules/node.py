@@ -269,7 +269,7 @@ class NodeProfile(object):
         log("Started counting in sentence for " + self.id)
         count = 0
         for f in self.focals:
-            count += self.countInSentence(focal)
+            count += self.countInSentence(f)
         return count
     
     def countInSentence(self,f):
@@ -357,22 +357,24 @@ class NodeProfile(object):
     # Return dictionary of focal character hz in text
     def focalCountDict(self):
         f_chardict = {}
-        for focal in self.focal.cc.chars:
+        for focal in self.focal.chars:
             count = 0
             for f in self.focals:
                 if f.char == focal:
                     count += 1
             f_chardict[focal] = count
+        return f_chardict
 
-    # Return dictionary of focal character hz in text
+    # Return dictionary of compare character hz in text
     def compareCountDict(self):
         c_chardict = {}
-        for compare in self.compare.cc.chars:
+        for compare in self.compare.chars:
             count = 0
             for c in self.compares:
                 if c.char == compare:
                     count += 1
             c_chardict[compare] = count
+        return c_chardict
 
 # A set of characters with a unique identifier
 class CharacterClass(object):

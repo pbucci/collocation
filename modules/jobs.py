@@ -1,7 +1,9 @@
 jobs = {
     # Order : focal,compare,stopwords,delimiters,maxcost
+    'job0' : ('cc1', 'cc2', 'stopwords', 'delimiters', 120),
+#
 #    'job1' : ('reduced_deity', 'reduced_reward', 'stopwords', 'delimiters', 120),
-    'job2' : ('reduced_gods', 'reduced_punishment', 'stopwords', 'delimiters', 120),
+#    'job2' : ('reduced_gods', 'reduced_punishment', 'stopwords', 'delimiters', 120),
 #    'job3' : ('reduced_gods', 'reduced_reward', 'stopwords', 'delimiters', 120),
 #    'job4' : ('reduced_deity', 'ubc_morality', 'stopwords', 'delimiters', 120),
 #    'job5' : ('reduced_deity', 'ubc_emotion', 'stopwords', 'delimiters', 120),

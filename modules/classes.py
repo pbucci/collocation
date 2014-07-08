@@ -2,10 +2,10 @@
 classes = {
     'null' : (''),
     'ignore' : (' ','\n','\r','\t'),
-    'cc1' : ('@#','y'),
-    'cc2' : ('@!','y'),
-    'cc3' : ('#v!','y'),
-    'stopwords' : ('無'),
+    'cc1' : ('x','y'),
+    'cc2' : ('v','v'),
+    'cc3' : ('t','o'),
+    'stopwords' : ('p'),
     'delimiters' : ('.'),
 }
 
