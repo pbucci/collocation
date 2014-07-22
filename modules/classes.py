@@ -8,7 +8,6 @@ classes = {
     'delimiters' : ('。'),
 }
 
-
 '''
     'delimiters' : ('。'),
     

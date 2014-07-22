@@ -47,7 +47,6 @@ class TextHandler(object):
             # only continue (i.e., increment the count, etc)
             # if we aren't ignoring this character
             if (current in ignores):
-                node_handler.queue = []
                 continue
             pos = pos + 1
             not_found = True
