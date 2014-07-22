@@ -11,70 +11,35 @@ class NodeHandler(object):
         self.nodes = []
     
     # Check before appending to nodes
-    def add(self,new):
-        if new.char == new.key[0]:
-            self.queue.append(new)
+    def add(self,new,index):
+        if new.char == new.key:
+            self.nodes.append(new)
         else:
-            temp_queue = []
-            while self.queue != []:
-                node = self.queue.pop()
-                if new.char == node.next_char() and node.ignore == False:
-                    node.char += new.char
-                    node.ignore = True
-                    temp_queue.append(node)
-                elif node.ignore == True:
-                    temp_queue.append(node)
-                else:
-                    pass
-            for node in temp_queue:
-                print(node.char)
-                if node.char == node.key:
-                    self.nodes.append(node)
-                else:
-                    self.queue.append(node)
-
-
-
-#        if len(new.key) == 1:
-#            self.nodes.append(new)
-#        else:
-#            in_queue = False
-#            for node in self.queue:
-#                if new.char == new.key[0] and new.pos == node.pos:
-#                    in_queue = True
-#            if not in_queue and new.char == new.key[0]:
-#                self.queue.append(new)
-#        temp_queue = []
-#        while self.queue != []:
-#            node = self.queue.pop()
-#            log("Checking node : " + node.char)
-#            # If the new character is in same position as the first character, skip
-#            if new.pos != node.pos:
-#                # If the new character is not the next character needed,
-#                # do nothing, thereby leaving the node off the queue
-#                log("This got into the big if : " + new.char)
-#                if new.char == node.get_next_char():
-#                    log("And this got into the small if : " + new.char)
-#                    node.char = node.char + new.char
-#                    node.rightpos = new.pos
-#                    if node.char == node.key:
-#                        self.nodes.append(node)
-#                    elif node.char in node.key:
-#                        temp_queue.append(node)
-#                elif new.pos == node.rightpos:
-#                    temp_queue.append(node)
-#                else:
-#                    print("It was : " + new.char + " and was supposed to be " + node.get_next_char())
-#            else:
-#                temp_queue.append(node)
-#        for node in temp_queue:
-#            self.queue.append(node)
+            if new.char == new.key[0] and index == 0:
+                new.ignore = True
+                self.queue.append(new)
+            else:
+                temp_queue = []
+                while self.queue != []:
+                    node = self.queue.pop()
+                    if new.char == node.next_char() and node.ignore == False:
+                        node.char += new.char
+                        node.ignore = True
+                        temp_queue.append(node)
+                    elif node.ignore == True:
+                        temp_queue.append(node)
+                    else:
+                        pass
+                for node in temp_queue:
+                    if node.char == node.key:
+                        self.nodes.append(node)
+                    else:
+                        self.queue.append(node)
 
 # All pertainent characters in a text are represented
 # as nodes.
 class Node(object):
     def __init__(self,char,cc,pos,key):
-        self.ignore = False
         self.pos = pos
         self.rightpos = pos
         self.cc = cc

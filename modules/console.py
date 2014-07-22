@@ -227,22 +227,21 @@ class ParseHandler(cmd.Cmd):
         self.saveFrequency(cl,chars)
 
     # Chars is list of characters
-    def saveFrequency(self,cl,chars):
-        file = open(self.dirpath + "_" + cl.id + "_char_frequency.csv", 'w')
+    def saveFrequency(self,clazz,char_set):
+        file = open(self.dirpath + "_" + clazz.id + "_char_frequency.csv", 'w')
         file.write('text_name,')
-        for c in chars:
+        for c in char_set:
             file.write(c + ',')
         file.write('\n')
         for text in self.texts:
             file.write(text.id + ',')
-            for np in text.profiles:
-                if (np.focal == cl):
+            for node_profile in text.profiles:
+                if (node_profile.focal == clazz):
                     new_dict = collections.OrderedDict()
-                    dict = np.focalCountDict()
-                    for c in chars:
+                    dict = node_profile.focalCountDict()
+                    for c in char_set:
                         new_dict[c] = dict[c]
                     for key,value in new_dict.items():
-                        print(key)
                         file.write(str(value) + ',')
                     file.write('\n')
                     break

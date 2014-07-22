@@ -47,6 +47,7 @@ class TextHandler(object):
             # only continue (i.e., increment the count, etc)
             # if we aren't ignoring this character
             if (current in ignores):
+                node_handler.queue = []
                 continue
             pos = pos + 1
             not_found = True
@@ -54,10 +55,12 @@ class TextHandler(object):
                 node.ignore = False
             for cc in classes:
                 for key in cc.chars:
+                    index = 0
                     for char in key:
                         if current == char:
                             not_found = False
-                            node_handler.add(Node(current,cc,pos,key))
+                            node_handler.add(Node(current,cc,pos,key),index)
+                        index += 1
             if not_found:
                 node_handler.queue = []
         self.nodes = node_handler.nodes[:]
