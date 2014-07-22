@@ -2,7 +2,7 @@ from printer import log
 import gc
 import sys
 import collections
-
+#
 class NodeHandler(object):
     def __init__(self,parsehandler):
         self.parsehandler = parsehandler
