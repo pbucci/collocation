@@ -50,17 +50,16 @@ class TextHandler(object):
                 continue
             pos = pos + 1
             not_found = True
+            for node in node_handler.queue:
+                node.ignore = False
             for cc in classes:
                 for key in cc.chars:
                     for char in key:
                         if current == char:
                             not_found = False
-                            log("Current = " + current)
                             node_handler.add(Node(current,cc,pos,key))
             if not_found:
                 node_handler.queue = []
-        for n in node_handler.nodes:
-            log("End of check : " + n.key)
         self.nodes = node_handler.nodes[:]
         file.close()
         self.charnum = pos
