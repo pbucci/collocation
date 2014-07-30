@@ -1,7 +1,7 @@
 jobs = {
-    # Order : focal,compare,stopwords,delimiters,maxcost
-    'job0' : ('cc1', 'cc2', 'stopwords', 'delimiters', 50),
-#
+#     Order : focal,compare,stopwords,delimiters,maxcost
+#    'raw_freq' : ('all_chars', 'dummy_set', 'stopwords', 'delimiters', 120),
+#   'ditest' : ('di_test', 'dummy_set', 'stopwords', 'delimiters', 120),
 #    'job1' : ('reduced_deity', 'reduced_reward', 'stopwords', 'delimiters', 120),
 #    'job2' : ('reduced_gods', 'reduced_punishment', 'stopwords', 'delimiters', 120),
 #    'job3' : ('reduced_gods', 'reduced_reward', 'stopwords', 'delimiters', 120),
@@ -13,4 +13,17 @@ jobs = {
 #    'job9' : ('reduced_gods', 'ubc_emotion', 'stopwords', 'delimiters', 120),
 #    'job10' : ('reduced_gods', 'ubc_cognition', 'stopwords', 'delimiters', 120),
 #    'job11' : ('reduced_gods', 'ubc_religion', 'stopwords', 'delimiters', 120),
+#    'job12' : ('reduced_deity', 'reduced_punishment', 'stopwords', 'delimiters', 120),
+    'job13' : ('stoplisted_di', 'reduced_reward', 'stopwords', 'delimiters', 120),
+    'job14' : ('stoplisted_tian', 'reduced_punishment', 'stopwords', 'delimiters', 120),
+    'job15' : ('stoplisted_tian', 'reduced_reward', 'stopwords', 'delimiters', 120),
+    'job16' : ('stoplisted_di', 'ubc_morality', 'stopwords', 'delimiters', 120),
+    'job17' : ('stoplisted_di', 'ubc_emotion', 'stopwords', 'delimiters', 120),
+    'job18' : ('stoplisted_di', 'ubc_cognition', 'stopwords', 'delimiters', 120),
+    'job19' : ('stoplisted_di', 'ubc_religion', 'stopwords', 'delimiters', 120),
+    'job20' : ('stoplisted_tian', 'ubc_morality', 'stopwords', 'delimiters', 120),
+    'job21' : ('stoplisted_tian', 'ubc_emotion', 'stopwords', 'delimiters', 120),
+    'job22' : ('stoplisted_tian', 'ubc_cognition', 'stopwords', 'delimiters', 120),
+    'job23' : ('stoplisted_tian', 'ubc_religion', 'stopwords', 'delimiters', 120),
+    'job24' : ('stoplisted_di', 'reduced_punishment', 'stopwords', 'delimiters', 120),
 }

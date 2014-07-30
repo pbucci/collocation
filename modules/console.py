@@ -144,6 +144,8 @@ class ParseHandler(cmd.Cmd):
 
     def do_jobs(self,line):
         '''Quick command for do all in job_batch function.'''
+        del self.jobs[:]
+        self.loadAllJobs()
         for j in self.jobs:
             self.run_profile(j[0], j[1], j[2], j[3], j[4])
         log('Done running job batch.')
@@ -213,8 +215,6 @@ class ParseHandler(cmd.Cmd):
         ''' Loads all texts in a directory.'''
         log('Loading texts and jobs. Might take a minute.')
         del self.texts[:]
-        del self.jobs[:]
-        self.loadAllJobs()
         self.loadAllTexts()
     
     def do_hz(self,line):
@@ -331,5 +331,5 @@ class ParseHandler(cmd.Cmd):
             print(e.__class__, ':', e)
 
 if __name__ == '__main__':
-    console = ParseHandler('/Users/bucci/dev/CorrelationProfiler/texts')
+    console = ParseHandler('/Users/carsonklogan/Dropbox/collocation_profiler/texts')
     console.cmdloop()

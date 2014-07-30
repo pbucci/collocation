@@ -3,6 +3,7 @@ import codecs
 from printer import log
 from node import *
 import gc
+import copy
 
 ## TextHandler handles all text metadata ##
 class TextHandler(object):
@@ -74,8 +75,14 @@ class TextHandler(object):
         stopwords = []
         delims = []
         compares = []
+        new_list = []
+        for n in self.nodes:
+            x = Node(n.char,n.cc,n.pos,n.key)
+            new_list.append(x)
+        log(len(new_list))
         # Sort the nodes into their correct categories
-        for n in self.nodes[:]:
+        for n in new_list:
+#        for n in self.nodes[:]:
             if n.cc == focal:
                 focals.append(n)
             elif n.cc == stopword:
